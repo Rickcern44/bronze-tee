@@ -1,0 +1,12 @@
+<Project Sdk="Godot.NET.Sdk/4.7.2">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <AssemblyName>BronzeTee.Godot</AssemblyName>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="scripts/PhysicsBridge.cs" />
+    <ProjectReference Include="dotnet/BronzeTee.Physics/BronzeTee.Physics.csproj" />
+  </ItemGroup>
+</Project>

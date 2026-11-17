@@ -1,0 +1,113 @@
+# Bronze Tee
+
+A desktop-first arcade golf four-hole prototype inspired by the first four holes of Royal Crest Golf Club in Columbia Station, Ohio for Godot 4. It uses procedural course visuals and free third-party tree models; no plugins are required.
+
+## Run
+
+1. Install **Godot 4.7.2 .NET** for macOS or Windows and the .NET 10 SDK.
+2. In a terminal at the project root, run `dotnet build BronzeTee.Godot.csproj` to build the Godot adapter and physics library. The first build restores the Godot SDK package.
+3. Open the project in Godot's .NET editor and press **F5** to play. Rebuild after changing C# code.
+
+## Controls
+
+- Hold the left mouse button, pull down at least a little, then swipe up and release to hit. The backswing distance sets power, visible on the meter. Swipe up and release to hit. Sideways movement during the forward swipe adds a left or right launch angle; the aim controls set the baseline direction.
+- **A / D** or **left / right arrows**: aim. On the green, each press adjusts aim by 0.25°; hold **Shift** for 0.05° adjustments. The green panel shows where the chosen aim crosses the cup's distance in inches left or right of the cup. This is your aim, not predicted break.
+- While putting, use the **mouse wheel** or **+ / −** to zoom. The putting view starts closer than the normal shot camera.
+- **, / .**: decrease or increase swipe-direction sensitivity (0.5×–2×). The swipe gauge under the swing meter shows the launch offset in degrees and the sensitivity setting; small movements inside the dead zone are ignored.
+- **Q / E**: change club (driver, woods, hybrid, 5–9 irons, wedges, and putter). The club panel recommends the full-power straight normal shot whose estimated total distance is closest to the cup, using current wind, lie, terrain and driver-speed setting. It assumes you aim directly at the cup and does not account for hazards or trees. At the start of each new shot, including the tee shot, the recommendation is selected automatically; the putter is selected on the green. You can still change the club with Q / E.
+- **[ / ]**: adjust the full-power driver swing-speed reference in 5 mph steps, from 70 to 130 mph. The default is 105 mph. The reference persists when restarting the hole.
+- **U / I**: select hook, draw, straight, fade, or slice. Draw and hook curve left; fade and slice curve right relative to aim.
+- **J / K**: select normal, flop, punch, or stinger. Flops fly higher and stop more quickly; punches and stingers fly lower, with stingers lowest. The putter always rolls straight and ignores these settings.
+- **B**: cycle normal spin, added backspin and topspin. Normal shots use modest default spin and typically release forward on a level green; selected backspin can make an approach check or pull back, and topspin encourages more forward release. Terrain slope can also affect the final direction. The ball and lie panel shows back/top and side spin in RPM while the ball moves; negative backspin indicates topspin. Putts start with partial forward rotation and slide into rolling.
+- **G**: cycle the green speed between 8, 10 and 12 feet on the Stimpmeter; 10 is the default. The selected speed is shown as a segmented control in the green panel.
+- **V**: toggle landing view before a shot. It shows the predicted first landing point (a ring, beacon, distance chip and dotted flight arc; dashed red for a tree, dotted chalk for water) at full power, then updates to your backswing power as you swing. For a putt, V displays estimated roll and ending position as numbers only, initially using the suggested pace and then your actual backswing. There is no predicted path or stop marker. The preview accounts for club, aim, forward swipe direction, shot shape and type, spin, lie, wind, terrain and tree collisions; landing is before bounce and roll.
+- **H**: toggle the green read while setting up a putt. The arrows show the local downhill direction; longer arrows indicate steeper slopes. A small ring marks the previous putt's start, and the panel shows its starting distance and distance traveled. The mark on the power meter suggests pace based on the slope at the ball, so it is a guide rather than a guarantee.
+- Wind speed and direction are randomized at the start of each hole and whenever you restart with **R**. Randomized wind ranges from 5 to 20 mph; W can still select calm manually.
+- **W**: cycle wind speed from calm to 20 mph. **X**: rotate wind direction by 45°. Wind components are shown relative to your aim.
+- **F3**: open the debug hole selector. Click a hole or press its number (1–9); F3 or Escape closes the menu. Selecting a hole clears current round scores and starts a practice round there; skipped holes remain unplayed. The ball is paused while the menu is open.
+- **T**: before the first stroke of a hole, cycle white, blue and black tees. The selection carries to subsequent holes; restart a hole to change it after playing a shot. Blue scorecard yardages follow Royal Crest's published card; black tees are an extra fictional difficulty option.
+- **N**: proceed to the next hole after holing out.
+- **R**: restart the current hole while retaining prior completed-hole scores. After completing the fourth hole, R starts a new round.
+- **Escape**: quit the game. The game starts in full screen.
+
+Use a mouse rather than a trackpad for the first test. Short gestures may be cancelled; start with a deliberate pull down followed by a longer swipe up. After each shot comes to rest, swing again from the new position. The game aims toward the cup and selects a club for the next shot; adjust your aim or club as needed. During a shot the main distance display counts the horizontal distance from the shot’s starting point; once the ball stops it shows the distance remaining to the cup. Press R to restart the hole.
+
+## Prototype notes
+
+Flight and ground response use the same fixed-step C# simulation for live play, landing previews and club recommendations. Flight uses gravity, wind-relative air drag, and an arcade-tuned spin force. Angular velocity decays in flight; on impact, surface friction exchanges spin and movement, and rolling gradually approaches natural rolling spin. Clubs, shot type, lie, power and the B spin setting determine launch spin, while shot shape supplies sidespin. Impact also uses surface, landing angle, terrain slope and baseline club/shot-type grip. This is an approximation for gameplay, not a calibrated launch monitor. The HUD shows the wind component toward the target and toward the right of your aim; positive values mean the wind blows in those directions. Trees use approximate trunk and canopy collision volumes. Fairway, first-cut, rough and bunker lies affect launch power and rolling resistance; the first cut gives 92% launch power, between fairway and rough. Water adds one penalty stroke and replays the shot from the previous spot. The green has reduced rolling resistance and a gentle slope. On the green, putting feedback shows distance in feet, the local slope, and approximate roll and suggested power. These estimates do not predict changing slopes along the full putt.
+
+A full-power, straight, normal driver is calibrated to about 280 yards total on a level fairway in calm conditions. The HUD roll figure includes both bouncing and rolling after the first landing. Wind, terrain and lie change the outcome. A camera-facing ball trail (white head, bronze tail, ground shadow, bounce rings, roll dots) and follow camera show each shot; the trail fades near the camera or across the ball's sightline and disappears after the ball stops. The cup is 4.25 inches across and at least 4 inches deep; its capture behavior is an approximation based on approach speed and offset, rather than a full rim and flagstick collision simulation. The game uses meters internally and shows most distances in yards. Shot shaping uses an adjustable arcade side-spin force rather than a full spin simulation. Mouse input is a starting point for a future trackball adapter; a real trackball still needs testing.
+
+The swing-speed setting is a player calibration expressed as a full-swing driver-equivalent speed, not a measurement of the mouse or the actual clubhead speed for every club. The backswing meter still controls the fraction applied to each shot. A future trackball can map its measured input to this interface after hardware calibration.
+
+Club distances are tuned against the 95 mph benchmark in [GreenCard Golf's distance chart](https://greencardgolf.com/personalised-golf-club-distance-charts/). On a level fairway with no wind, at 95 mph and full power, a 5 iron carries about 162 yards and finishes around 170; the driver carries about 220 and finishes around 245. At the default 105 mph the full-power driver travels about 280 yards total. These are approximations: the lofts are simulation launch angles, not equipment specifications, and slope, wind, lie, shape and power affect actual shots.
+
+For pitching, sand and lob wedges, the meter is tuned so partial-power carry is approximately proportional to the selected percentage on a level, calm shot; 50% is roughly half of full carry. Wind, elevation, lie and shot type still affect the outcome. The meter is an arcade control, not a direct measurement of clubhead speed.
+
+The swing meter shows shot power while you pull back. Once you swipe forward, power is locked in; release to hit. The cursor is captured during a swing so screen edges do not limit the gesture.
+
+## Third-party assets
+
+Trees: Free Forest Nature Pack by hooray4brains, https://hooray4brains.itch.io/free-forest-nature-pack. Free for personal and commercial use; attribution appreciated, not required. Do not resell or redistribute the raw files. See `assets/forest/README.txt` for the creator’s terms.
+
+## Playing the hole
+
+Reach each flagged cup in as few strokes as possible. Finish each hole, then press N to advance; hole scores and the cumulative score relative to par are shown in the scorecard cells and round chip. After hole four the round is complete. Hole three is a 345-yard par 4 from Royal Crest’s white tees, with illustrative hills and green contours for testing rather than surveyed terrain. Hole four is a 544-yard par 5 from the white tees, with a left dogleg and trees guarding the green. Their precise positions and the terrain are approximations. Its scorecard yardage follows the fairway; the distance-to-pin display uses the shorter straight-line distance. Each completed swing counts as a stroke. Shots that pass the cup too quickly will roll past; use the putter and control power on the green. The green has a gentle slope, and the regulation-sized cup requires precise aim and pace.
+
+## Automated gameplay check
+
+Run `godot --headless --path . --script res://tests/gameplay_check.gd` to exercise wind, lies, tree impacts, putting, scoring, penalties, and a complete hole. Run `godot --headless --path . --script res://tests/landing_preview_check.gd` to compare the landing preview with actual shots.
+
+Run `godot --headless --path . --script res://tests/debug_menu_check.gd` to check debug selection, mouse interaction, pausing, and practice scoring.
+
+Run `godot --headless --path . --script res://tests/spin_check.gd` to check the spin control and landing preview. Run `godot --headless --path . --script res://tests/green_approach_check.gd` to compare normal release, backspin and live shot forecasts on the green.
+
+Run `godot --headless --path . --script res://tests/shot_shapes_check.gd` to check shot shapes, flight types, controls and landing previews.
+
+Run `godot --headless --path . --script res://tests/driver_distance_check.gd` to verify the driver calibration on a level, calm fairway.
+
+## HUD and effects code
+
+`scripts/main.gd` fills one `HudState` (raw values) each frame and calls `Hud.apply_state()`. Each component in `scripts/ui/` is a typed, `class_name`d Control that formats its own text and redraws only when its inputs change. Colours live in `HudPalette`, fonts in `HudFonts` (Barlow and Barlow Condensed TTFs from `assets/fonts/`, with a system-font fallback) and the shared Theme in `HudTheme`. World effects are in `scripts/world/` (`BallTrail`, `LandingMarker`, `PuttPreview`, with shared `DotField`, `WorldChip` and `FxMeshBuilder`). The headless checks read HUD state through `game.hud` (for example `game.hud.distance_readout.mode`).
+
+## C# physics work
+
+The C# simulation and scenario tests are in [dotnet](dotnet/README.md). `scripts/PhysicsBridge.cs` connects the Godot course and game to the library. The .NET version of Godot is required to run the project.
+
+Run `godot --headless --path . --script res://tests/club_distance_check.gd` to check the club yardage table and swing-speed controls.
+
+Run `godot --headless --path . --script res://tests/club_recommendation_check.gd` to check the club recommendation.
+
+Run `godot --headless --path . --script res://tests/shot_setup_check.gd` to check automatic club selection and distance-display transitions.
+
+## Terrain visuals
+
+The terrain is one mesh drawn by `shaders/terrain.gdshader`, which samples the baked albedo tiles in `assets/textures/terrain/` at world-space UVs (about 4 m per grass tile, 6 m for water, one path width for the cart path). `_surface_at(x, z)` in `scripts/main.gd` classifies every point (green, collar, fairway, first cut, second cut, deep rough, water, path, tee); the shader mirrors that order and `_update_terrain_uniforms()` feeds it the hole's geometry on every hole load. Second cut (6 m beyond the first cut) and deep rough are visual only and both count as "Rough" for gameplay. Shorter cuts get a soft inner shadow, water gets a dark bank and pale shallow band, and the water scrolls slowly. `tests/terrain_surfaces_check.gd` covers the classification and the shader parameters.
+
+## Course reference
+
+The approximate hole layout is based on the [GolfLogix map](https://www.golflogix.com/page/courses-mapped/?cn=RoyalCrestGolfClub%2CInc.OH): a mostly straight tree-lined fairway, rounded green, right-side path and water glimpsed beyond the right trees and behind the green. Hole one starts at 353 yards and hole two at 207 yards from the [white-tee scorecard](https://www.golfify.io/courses/royal-crest-golf-club). Hazard sizes and locations, elevation, tree placement and pin location are visual approximations rather than surveyed measurements. Hole two is a par 3 with water along the left and trees and a path on the right. No bunkers are shown because none were apparent on the supplied maps.
+
+Run `godot --headless --path . --script res://tests/royal_crest_check.gd` to check the course geometry.
+
+Run `godot --headless --path . --script res://tests/round_progression_check.gd` and `res://tests/two_hole_round_check.gd` to check scoring, progression and all four holes.
+
+Run `godot --headless --path . --script res://tests/swipe_direction_check.gd` to check swipe direction and preview behavior.
+
+Run `godot --headless --path . --script res://tests/ground_integration_check.gd` after building to verify the C# bridge, first-bounce heights and landing preview.
+
+## Green and cup physics references
+
+Green rolling resistance is calibrated from a 1.83 m/s Stimpmeter launch speed. A solid-sphere approximation models sliding friction, angular velocity and slope response. Cup capture uses a simplified speed/offset envelope, with a 1.63 m/s centerline limit; it does not simulate lip-outs, flagstick collisions or a ball rattling in the cup. See [Penner, The Physics of Putting](https://raypenner.com/golf-putting.pdf) and the [USGA hole dimensions](https://www.usga.org/etc/designs/usga/content/rule-book/rule-14253.html).
+
+## Authoring a hole
+
+Royal Crest’s four holes are defined by `resources/holes/royal_crest_01.tres` through `royal_crest_04.tres`. Open a hole in Godot’s Inspector to edit its scorecard, tee and cup positions, fairway and cut widths, green, terrain, path, water ellipses, and deterministic tree layout. Positions and sizes are meters in world X/Z coordinates; negative Z runs down the hole. Yardage is scorecard metadata, so update it when moving the tee or cup. The tee position and tee ellipse are separate fields and should be moved together.
+
+The four holes are a geodata experiment: they use OpenStreetMap centerlines and small crops of USGS elevation data, with approximate authored surfaces and trees. See [the geodata spike](docs/features/royal-crest-geodata-spike.md) for attribution, reproduction, limitations, and export instructions.
+
+To create a supported hole, duplicate that resource, edit its fields, and append it to the `holes` array in `resources/courses/royal_crest.tres`. The course resource lists every hole in play order. Add or reorder hole resources in that array, and set each hole number to match its position in the round. Restart the game after editing resources. `tests/fixtures/data_driven_hole.tres` is a compact example.
+
+The generator supports rounded fairways with a smooth dogleg or a short mapped centerline, an elliptical green, up to three tee pads, up to four elliptical water features, a cart path, and deterministic trees. Define the white tee and pad in the hole resource; optional blue and black offsets and scorecard distances add the other pads. Keep the cup at a negative Z and use positive green radii; the terrain extends past the tees and green automatically. Imported elevation grids and procedural hills are supported. Arbitrary surface outlines, bunker authoring, and visual editing are future work.
+
+Run `godot --headless --path . --script res://tests/hole_definition_check.gd` to verify an alternate resource, its shader parameters and physics water, and switching between holes. Run `godot --headless --path . --script res://tests/migrated_holes_check.gd` to check the first three resource-backed layouts and editable hills. Run `godot --headless --path . --script res://tests/fourth_hole_check.gd` to verify hole 4 and the extended terrain.

@@ -1,0 +1,336 @@
+{
+  "version": 1,
+  "family": "nature",
+  "assets": [
+    {
+      "id": "rock_large_a",
+      "family": "nature",
+      "file": "res://assets/models/nature/rock_large_a.glb",
+      "size": [
+        1.937,
+        1.202,
+        1.898
+      ],
+      "triangles": 146,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          0.8,
+          1.25
+        ],
+        "random_yaw": true,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Body"
+      ],
+      "pivot": "sunk"
+    },
+    {
+      "id": "rock_large_b",
+      "family": "nature",
+      "file": "res://assets/models/nature/rock_large_b.glb",
+      "size": [
+        1.883,
+        0.877,
+        1.569
+      ],
+      "triangles": 228,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          0.8,
+          1.25
+        ],
+        "random_yaw": true,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Body"
+      ],
+      "pivot": "sunk"
+    },
+    {
+      "id": "rock_medium_a",
+      "family": "nature",
+      "file": "res://assets/models/nature/rock_medium_a.glb",
+      "size": [
+        0.967,
+        0.573,
+        0.92
+      ],
+      "triangles": 140,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          0.8,
+          1.25
+        ],
+        "random_yaw": true,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Body"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "rock_medium_b",
+      "family": "nature",
+      "file": "res://assets/models/nature/rock_medium_b.glb",
+      "size": [
+        1.016,
+        0.419,
+        0.649
+      ],
+      "triangles": 168,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          0.8,
+          1.25
+        ],
+        "random_yaw": true,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Body"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "rock_small_a",
+      "family": "nature",
+      "file": "res://assets/models/nature/rock_small_a.glb",
+      "size": [
+        0.409,
+        0.264,
+        0.392
+      ],
+      "triangles": 140,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          0.8,
+          1.25
+        ],
+        "random_yaw": true,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Body"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "rock_small_b",
+      "family": "nature",
+      "file": "res://assets/models/nature/rock_small_b.glb",
+      "size": [
+        0.406,
+        0.169,
+        0.361
+      ],
+      "triangles": 218,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          0.8,
+          1.25
+        ],
+        "random_yaw": true,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Body"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "shrub_flowering_a",
+      "family": "nature",
+      "file": "res://assets/models/nature/shrub_flowering_a.glb",
+      "size": [
+        1.085,
+        0.814,
+        0.882
+      ],
+      "triangles": 480,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          0.85,
+          1.2
+        ],
+        "random_yaw": true,
+        "palettes": [
+          "default",
+          "autumn"
+        ]
+      },
+      "parts": [
+        "Body",
+        "Flowers"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "shrub_flowering_b",
+      "family": "nature",
+      "file": "res://assets/models/nature/shrub_flowering_b.glb",
+      "size": [
+        0.995,
+        0.837,
+        0.758
+      ],
+      "triangles": 400,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          0.85,
+          1.2
+        ],
+        "random_yaw": true,
+        "palettes": [
+          "default",
+          "autumn"
+        ]
+      },
+      "parts": [
+        "Body",
+        "Flowers"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "shrub_grass_a",
+      "family": "nature",
+      "file": "res://assets/models/nature/shrub_grass_a.glb",
+      "size": [
+        0.823,
+        0.8,
+        0.816
+      ],
+      "triangles": 60,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          0.85,
+          1.2
+        ],
+        "random_yaw": true,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Body"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "shrub_grass_b",
+      "family": "nature",
+      "file": "res://assets/models/nature/shrub_grass_b.glb",
+      "size": [
+        0.416,
+        0.948,
+        0.422
+      ],
+      "triangles": 72,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          0.85,
+          1.2
+        ],
+        "random_yaw": true,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Body"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "shrub_round_a",
+      "family": "nature",
+      "file": "res://assets/models/nature/shrub_round_a.glb",
+      "size": [
+        1.022,
+        0.855,
+        0.856
+      ],
+      "triangles": 320,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          0.85,
+          1.2
+        ],
+        "random_yaw": true,
+        "palettes": [
+          "default",
+          "autumn"
+        ]
+      },
+      "parts": [
+        "Body"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "shrub_round_b",
+      "family": "nature",
+      "file": "res://assets/models/nature/shrub_round_b.glb",
+      "size": [
+        1.001,
+        0.797,
+        0.695
+      ],
+      "triangles": 240,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          0.85,
+          1.2
+        ],
+        "random_yaw": true,
+        "palettes": [
+          "default",
+          "autumn"
+        ]
+      },
+      "parts": [
+        "Body"
+      ],
+      "pivot": "base"
+    }
+  ]
+}

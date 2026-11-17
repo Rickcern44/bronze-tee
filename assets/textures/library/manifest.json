@@ -1,0 +1,174 @@
+{
+  "version": 1,
+  "assets": [
+    {
+      "id": "bunker_sand",
+      "category": "sand",
+      "file": "res://assets/textures/library/sand/bunker_sand.png",
+      "size": [
+        512,
+        512
+      ],
+      "tileable": true,
+      "avg_color": "#BEAB82",
+      "seed": 68691183696364,
+      "use": "Bunker sand: pale warm sand with fine speckle."
+    },
+    {
+      "id": "bunker_sand_raked",
+      "category": "sand",
+      "file": "res://assets/textures/library/sand/bunker_sand_raked.png",
+      "size": [
+        512,
+        512
+      ],
+      "tileable": true,
+      "avg_color": "#BDAB82",
+      "seed": 119259616777036,
+      "use": "Raked bunker sand: same sand with parallel rake lines."
+    },
+    {
+      "id": "cart_path",
+      "category": "ground",
+      "file": "res://assets/textures/library/ground/cart_path.png",
+      "size": [
+        512,
+        512
+      ],
+      "tileable": true,
+      "avg_color": "#918D86",
+      "seed": 112088767812161,
+      "use": "Cart path: smooth warm-grey concrete with faint cracks."
+    },
+    {
+      "id": "collar",
+      "category": "turf",
+      "file": "res://assets/textures/library/turf/collar.png",
+      "size": [
+        512,
+        512
+      ],
+      "tileable": true,
+      "avg_color": "#5B9B41",
+      "seed": 152035488507621,
+      "use": "Collar between green and fairway: short, fine, directional grain, darker than green."
+    },
+    {
+      "id": "deep_rough",
+      "category": "turf",
+      "file": "res://assets/textures/library/turf/deep_rough.png",
+      "size": [
+        512,
+        512
+      ],
+      "tileable": true,
+      "avg_color": "#326335",
+      "seed": 267972286294672,
+      "use": "Deep rough: darkest, noisiest, long coarse blades."
+    },
+    {
+      "id": "dirt",
+      "category": "ground",
+      "file": "res://assets/textures/library/ground/dirt.png",
+      "size": [
+        512,
+        512
+      ],
+      "tileable": true,
+      "avg_color": "#78563B",
+      "seed": 214969731929705,
+      "use": "Dirt: brown, pebbly; rough edges and off-course ground."
+    },
+    {
+      "id": "fairway_dark",
+      "category": "turf",
+      "file": "res://assets/textures/library/turf/fairway_dark.png",
+      "size": [
+        512,
+        512
+      ],
+      "tileable": true,
+      "avg_color": "#4D8B3D",
+      "seed": 233415234591891,
+      "use": "Fairway mow stripes, darker alternate stripe; pair with fairway_light."
+    },
+    {
+      "id": "fairway_light",
+      "category": "turf",
+      "file": "res://assets/textures/library/turf/fairway_light.png",
+      "size": [
+        512,
+        512
+      ],
+      "tileable": true,
+      "avg_color": "#5C9D45",
+      "seed": 88821322232477,
+      "use": "Fairway mow stripes, light band (lighter stripe of the mow pattern)."
+    },
+    {
+      "id": "first_cut",
+      "category": "turf",
+      "file": "res://assets/textures/library/turf/first_cut.png",
+      "size": [
+        512,
+        512
+      ],
+      "tileable": true,
+      "avg_color": "#539341",
+      "seed": 145745329151008,
+      "use": "First cut (fringe between fairway and rough): medium blades."
+    },
+    {
+      "id": "gravel_path",
+      "category": "ground",
+      "file": "res://assets/textures/library/ground/gravel_path.png",
+      "size": [
+        512,
+        512
+      ],
+      "tileable": true,
+      "avg_color": "#918B7F",
+      "seed": 261715323721660,
+      "use": "Gravel path: grey-beige small stones."
+    },
+    {
+      "id": "green",
+      "category": "turf",
+      "file": "res://assets/textures/library/turf/green.png",
+      "size": [
+        512,
+        512
+      ],
+      "tileable": true,
+      "avg_color": "#83C358",
+      "seed": 204816398821034,
+      "use": "Putting surface: finest, smoothest, brightest turf."
+    },
+    {
+      "id": "native_fescue",
+      "category": "turf",
+      "file": "res://assets/textures/library/turf/native_fescue.png",
+      "size": [
+        512,
+        512
+      ],
+      "tileable": true,
+      "avg_color": "#828A4C",
+      "seed": 173760331368601,
+      "use": "Native fescue: tall wispy tan-green grass with golden flecks."
+    },
+    {
+      "id": "second_cut",
+      "category": "turf",
+      "file": "res://assets/textures/library/turf/second_cut.png",
+      "size": [
+        512,
+        512
+      ],
+      "tileable": true,
+      "avg_color": "#417A34",
+      "seed": 141599983571693,
+      "use": "Second cut (transition to rough): darker, coarser, longer blades than first_cut."
+    }
+  ]
+}

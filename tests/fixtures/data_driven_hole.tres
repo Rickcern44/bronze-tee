@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="HoleDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/course/hole_definition.gd" id="1_hole"]
+
+[resource]
+script = ExtResource("1_hole")
+number = 4
+display_name = "Test hole"
+par = 4
+yards = 270.0
+tee_position = Vector2(3, 1)
+cup_position = Vector2(0, -240)
+tee_ellipse = Vector4(3, -1, 7, 6)
+green_radii = Vector2(10, 8)
+fairway_base_width = 12.0
+first_cut_width = 4.0
+fairway_height = 1.25
+green_slope = Vector2(0.01, 0.005)
+water_ellipses = Array[Vector4]([Vector4(40, -100, 7, 10)])
+path_center_x = 31.0
+tree_count = 4
+tree_spacing = 18.0
+tree_right_x = 42.0
+trees_on_left = false

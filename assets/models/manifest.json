@@ -1,0 +1,1760 @@
+{
+  "version": 1,
+  "palettes": {
+    "default": "res://assets/models/palette/palette_default.png",
+    "autumn": "res://assets/models/palette/palette_autumn.png"
+  },
+  "assets": [
+    {
+      "id": "cup",
+      "family": "props",
+      "file": "res://assets/models/props/cup.glb",
+      "size": [
+        0.12,
+        0.102,
+        0.12
+      ],
+      "triangles": 192,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          1.0,
+          1.0
+        ],
+        "random_yaw": false,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Liner"
+      ],
+      "pivot": "rim"
+    },
+    {
+      "id": "flagstick_blue",
+      "family": "props",
+      "file": "res://assets/models/props/flagstick_blue.glb",
+      "size": [
+        0.518,
+        2.13,
+        0.11
+      ],
+      "triangles": 288,
+      "visual_only": false,
+      "collision": {
+        "kind": "cylinder",
+        "radius": 0.0125,
+        "height": 2.13
+      },
+      "variation": {
+        "scale": [
+          1.0,
+          1.0
+        ],
+        "random_yaw": false,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Pole",
+        "Flag"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "flagstick_red",
+      "family": "props",
+      "file": "res://assets/models/props/flagstick_red.glb",
+      "size": [
+        0.518,
+        2.13,
+        0.11
+      ],
+      "triangles": 288,
+      "visual_only": false,
+      "collision": {
+        "kind": "cylinder",
+        "radius": 0.0125,
+        "height": 2.13
+      },
+      "variation": {
+        "scale": [
+          1.0,
+          1.0
+        ],
+        "random_yaw": false,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Pole",
+        "Flag"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "flagstick_yellow",
+      "family": "props",
+      "file": "res://assets/models/props/flagstick_yellow.glb",
+      "size": [
+        0.518,
+        2.13,
+        0.11
+      ],
+      "triangles": 288,
+      "visual_only": false,
+      "collision": {
+        "kind": "cylinder",
+        "radius": 0.0125,
+        "height": 2.13
+      },
+      "variation": {
+        "scale": [
+          1.0,
+          1.0
+        ],
+        "random_yaw": false,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Pole",
+        "Flag"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "rock_large_a",
+      "family": "nature",
+      "file": "res://assets/models/nature/rock_large_a.glb",
+      "size": [
+        1.937,
+        1.202,
+        1.898
+      ],
+      "triangles": 146,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          0.8,
+          1.25
+        ],
+        "random_yaw": true,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Body"
+      ],
+      "pivot": "sunk"
+    },
+    {
+      "id": "rock_large_b",
+      "family": "nature",
+      "file": "res://assets/models/nature/rock_large_b.glb",
+      "size": [
+        1.883,
+        0.877,
+        1.569
+      ],
+      "triangles": 228,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          0.8,
+          1.25
+        ],
+        "random_yaw": true,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Body"
+      ],
+      "pivot": "sunk"
+    },
+    {
+      "id": "rock_medium_a",
+      "family": "nature",
+      "file": "res://assets/models/nature/rock_medium_a.glb",
+      "size": [
+        0.967,
+        0.573,
+        0.92
+      ],
+      "triangles": 140,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          0.8,
+          1.25
+        ],
+        "random_yaw": true,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Body"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "rock_medium_b",
+      "family": "nature",
+      "file": "res://assets/models/nature/rock_medium_b.glb",
+      "size": [
+        1.016,
+        0.419,
+        0.649
+      ],
+      "triangles": 168,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          0.8,
+          1.25
+        ],
+        "random_yaw": true,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Body"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "rock_small_a",
+      "family": "nature",
+      "file": "res://assets/models/nature/rock_small_a.glb",
+      "size": [
+        0.409,
+        0.264,
+        0.392
+      ],
+      "triangles": 140,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          0.8,
+          1.25
+        ],
+        "random_yaw": true,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Body"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "rock_small_b",
+      "family": "nature",
+      "file": "res://assets/models/nature/rock_small_b.glb",
+      "size": [
+        0.406,
+        0.169,
+        0.361
+      ],
+      "triangles": 218,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          0.8,
+          1.25
+        ],
+        "random_yaw": true,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Body"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "shrub_flowering_a",
+      "family": "nature",
+      "file": "res://assets/models/nature/shrub_flowering_a.glb",
+      "size": [
+        1.085,
+        0.814,
+        0.882
+      ],
+      "triangles": 480,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          0.85,
+          1.2
+        ],
+        "random_yaw": true,
+        "palettes": [
+          "default",
+          "autumn"
+        ]
+      },
+      "parts": [
+        "Body",
+        "Flowers"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "shrub_flowering_b",
+      "family": "nature",
+      "file": "res://assets/models/nature/shrub_flowering_b.glb",
+      "size": [
+        0.995,
+        0.837,
+        0.758
+      ],
+      "triangles": 400,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          0.85,
+          1.2
+        ],
+        "random_yaw": true,
+        "palettes": [
+          "default",
+          "autumn"
+        ]
+      },
+      "parts": [
+        "Body",
+        "Flowers"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "shrub_grass_a",
+      "family": "nature",
+      "file": "res://assets/models/nature/shrub_grass_a.glb",
+      "size": [
+        0.823,
+        0.8,
+        0.816
+      ],
+      "triangles": 60,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          0.85,
+          1.2
+        ],
+        "random_yaw": true,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Body"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "shrub_grass_b",
+      "family": "nature",
+      "file": "res://assets/models/nature/shrub_grass_b.glb",
+      "size": [
+        0.416,
+        0.948,
+        0.422
+      ],
+      "triangles": 72,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          0.85,
+          1.2
+        ],
+        "random_yaw": true,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Body"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "shrub_round_a",
+      "family": "nature",
+      "file": "res://assets/models/nature/shrub_round_a.glb",
+      "size": [
+        1.022,
+        0.855,
+        0.856
+      ],
+      "triangles": 320,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          0.85,
+          1.2
+        ],
+        "random_yaw": true,
+        "palettes": [
+          "default",
+          "autumn"
+        ]
+      },
+      "parts": [
+        "Body"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "shrub_round_b",
+      "family": "nature",
+      "file": "res://assets/models/nature/shrub_round_b.glb",
+      "size": [
+        1.001,
+        0.797,
+        0.695
+      ],
+      "triangles": 240,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          0.85,
+          1.2
+        ],
+        "random_yaw": true,
+        "palettes": [
+          "default",
+          "autumn"
+        ]
+      },
+      "parts": [
+        "Body"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "tee_marker_ball_blue",
+      "family": "props",
+      "file": "res://assets/models/props/tee_marker_ball_blue.glb",
+      "size": [
+        0.552,
+        0.53,
+        0.58
+      ],
+      "triangles": 80,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          0.95,
+          1.05
+        ],
+        "random_yaw": false,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Body"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "tee_marker_ball_gold",
+      "family": "props",
+      "file": "res://assets/models/props/tee_marker_ball_gold.glb",
+      "size": [
+        0.552,
+        0.53,
+        0.58
+      ],
+      "triangles": 80,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          0.95,
+          1.05
+        ],
+        "random_yaw": false,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Body"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "tee_marker_ball_red",
+      "family": "props",
+      "file": "res://assets/models/props/tee_marker_ball_red.glb",
+      "size": [
+        0.552,
+        0.53,
+        0.58
+      ],
+      "triangles": 80,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          0.95,
+          1.05
+        ],
+        "random_yaw": false,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Body"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "tee_marker_ball_white",
+      "family": "props",
+      "file": "res://assets/models/props/tee_marker_ball_white.glb",
+      "size": [
+        0.552,
+        0.53,
+        0.58
+      ],
+      "triangles": 80,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          0.95,
+          1.05
+        ],
+        "random_yaw": false,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Body"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "tee_marker_block_blue",
+      "family": "props",
+      "file": "res://assets/models/props/tee_marker_block_blue.glb",
+      "size": [
+        0.3,
+        0.22,
+        0.22
+      ],
+      "triangles": 108,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          0.95,
+          1.05
+        ],
+        "random_yaw": false,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Body"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "tee_marker_block_gold",
+      "family": "props",
+      "file": "res://assets/models/props/tee_marker_block_gold.glb",
+      "size": [
+        0.3,
+        0.22,
+        0.22
+      ],
+      "triangles": 108,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          0.95,
+          1.05
+        ],
+        "random_yaw": false,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Body"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "tee_marker_block_red",
+      "family": "props",
+      "file": "res://assets/models/props/tee_marker_block_red.glb",
+      "size": [
+        0.3,
+        0.22,
+        0.22
+      ],
+      "triangles": 108,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          0.95,
+          1.05
+        ],
+        "random_yaw": false,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Body"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "tee_marker_block_white",
+      "family": "props",
+      "file": "res://assets/models/props/tee_marker_block_white.glb",
+      "size": [
+        0.3,
+        0.22,
+        0.22
+      ],
+      "triangles": 108,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          0.95,
+          1.05
+        ],
+        "random_yaw": false,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Body"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "tee_marker_tee_blue",
+      "family": "props",
+      "file": "res://assets/models/props/tee_marker_tee_blue.glb",
+      "size": [
+        0.176,
+        0.44,
+        0.176
+      ],
+      "triangles": 240,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          0.95,
+          1.05
+        ],
+        "random_yaw": false,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Body"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "tee_marker_tee_gold",
+      "family": "props",
+      "file": "res://assets/models/props/tee_marker_tee_gold.glb",
+      "size": [
+        0.176,
+        0.44,
+        0.176
+      ],
+      "triangles": 240,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          0.95,
+          1.05
+        ],
+        "random_yaw": false,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Body"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "tee_marker_tee_red",
+      "family": "props",
+      "file": "res://assets/models/props/tee_marker_tee_red.glb",
+      "size": [
+        0.176,
+        0.44,
+        0.176
+      ],
+      "triangles": 240,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          0.95,
+          1.05
+        ],
+        "random_yaw": false,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Body"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "tee_marker_tee_white",
+      "family": "props",
+      "file": "res://assets/models/props/tee_marker_tee_white.glb",
+      "size": [
+        0.176,
+        0.44,
+        0.176
+      ],
+      "triangles": 240,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          0.95,
+          1.05
+        ],
+        "random_yaw": false,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Body"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "tree_broadleaf_a_large",
+      "family": "trees",
+      "file": "res://assets/models/trees/tree_broadleaf_a_large.glb",
+      "size": [
+        9.423,
+        14.781,
+        7.515
+      ],
+      "triangles": 948,
+      "visual_only": false,
+      "collision": {
+        "kind": "tree",
+        "trunk_radius": 2.348,
+        "trunk_height": 5.372,
+        "crowns": [
+          {
+            "center": [
+              0.22,
+              12.301,
+              0.176
+            ],
+            "radius": 3.373
+          },
+          {
+            "center": [
+              0.97,
+              8.117,
+              1.503
+            ],
+            "radius": 4.221
+          },
+          {
+            "center": [
+              -1.196,
+              9.045,
+              -1.005
+            ],
+            "radius": 3.7
+          }
+        ]
+      },
+      "variation": {
+        "scale": [
+          0.85,
+          1.15
+        ],
+        "random_yaw": true,
+        "palettes": [
+          "default",
+          "autumn"
+        ]
+      },
+      "parts": [
+        "Trunk",
+        "Canopy"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "tree_broadleaf_a_medium",
+      "family": "trees",
+      "file": "res://assets/models/trees/tree_broadleaf_a_medium.glb",
+      "size": [
+        4.857,
+        7.614,
+        7.753
+      ],
+      "triangles": 788,
+      "visual_only": false,
+      "collision": {
+        "kind": "tree",
+        "trunk_radius": 1.262,
+        "trunk_height": 2.382,
+        "crowns": [
+          {
+            "center": [
+              -0.114,
+              5.703,
+              1.309
+            ],
+            "radius": 2.835
+          },
+          {
+            "center": [
+              0.115,
+              4.769,
+              -0.897
+            ],
+            "radius": 3.13
+          }
+        ]
+      },
+      "variation": {
+        "scale": [
+          0.85,
+          1.15
+        ],
+        "random_yaw": true,
+        "palettes": [
+          "default",
+          "autumn"
+        ]
+      },
+      "parts": [
+        "Trunk",
+        "Canopy"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "tree_broadleaf_b_large",
+      "family": "trees",
+      "file": "res://assets/models/trees/tree_broadleaf_b_large.glb",
+      "size": [
+        9.983,
+        11.922,
+        10.751
+      ],
+      "triangles": 1016,
+      "visual_only": false,
+      "collision": {
+        "kind": "tree",
+        "trunk_radius": 2.778,
+        "trunk_height": 4.331,
+        "crowns": [
+          {
+            "center": [
+              0.864,
+              9.755,
+              -0.545
+            ],
+            "radius": 4.909
+          },
+          {
+            "center": [
+              -1.25,
+              8.696,
+              2.06
+            ],
+            "radius": 4.52
+          },
+          {
+            "center": [
+              -1.459,
+              6.703,
+              -1.42
+            ],
+            "radius": 4.805
+          }
+        ]
+      },
+      "variation": {
+        "scale": [
+          0.85,
+          1.15
+        ],
+        "random_yaw": true,
+        "palettes": [
+          "default",
+          "autumn"
+        ]
+      },
+      "parts": [
+        "Trunk",
+        "Canopy"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "tree_broadleaf_b_medium",
+      "family": "trees",
+      "file": "res://assets/models/trees/tree_broadleaf_b_medium.glb",
+      "size": [
+        6.859,
+        8.673,
+        7.299
+      ],
+      "triangles": 936,
+      "visual_only": false,
+      "collision": {
+        "kind": "tree",
+        "trunk_radius": 1.882,
+        "trunk_height": 2.758,
+        "crowns": [
+          {
+            "center": [
+              -1.02,
+              7.079,
+              0.43
+            ],
+            "radius": 3.41
+          },
+          {
+            "center": [
+              0.338,
+              5.102,
+              -0.467
+            ],
+            "radius": 3.988
+          }
+        ]
+      },
+      "variation": {
+        "scale": [
+          0.85,
+          1.15
+        ],
+        "random_yaw": true,
+        "palettes": [
+          "default",
+          "autumn"
+        ]
+      },
+      "parts": [
+        "Trunk",
+        "Canopy"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "tree_broadleaf_c_large",
+      "family": "trees",
+      "file": "res://assets/models/trees/tree_broadleaf_c_large.glb",
+      "size": [
+        8.125,
+        13.136,
+        7.789
+      ],
+      "triangles": 1028,
+      "visual_only": false,
+      "collision": {
+        "kind": "tree",
+        "trunk_radius": 1.867,
+        "trunk_height": 4.487,
+        "crowns": [
+          {
+            "center": [
+              -1.315,
+              7.141,
+              0.161
+            ],
+            "radius": 3.963
+          },
+          {
+            "center": [
+              -0.622,
+              10.984,
+              -0.21
+            ],
+            "radius": 3.873
+          },
+          {
+            "center": [
+              0.948,
+              7.866,
+              -1.422
+            ],
+            "radius": 4.345
+          }
+        ]
+      },
+      "variation": {
+        "scale": [
+          0.85,
+          1.15
+        ],
+        "random_yaw": true,
+        "palettes": [
+          "default",
+          "autumn"
+        ]
+      },
+      "parts": [
+        "Trunk",
+        "Canopy"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "tree_broadleaf_c_medium",
+      "family": "trees",
+      "file": "res://assets/models/trees/tree_broadleaf_c_medium.glb",
+      "size": [
+        5.219,
+        8.732,
+        4.682
+      ],
+      "triangles": 788,
+      "visual_only": false,
+      "collision": {
+        "kind": "tree",
+        "trunk_radius": 1.232,
+        "trunk_height": 2.497,
+        "crowns": [
+          {
+            "center": [
+              -0.678,
+              7.157,
+              -0.369
+            ],
+            "radius": 2.919
+          },
+          {
+            "center": [
+              -0.323,
+              4.73,
+              -0.279
+            ],
+            "radius": 3.096
+          }
+        ]
+      },
+      "variation": {
+        "scale": [
+          0.85,
+          1.15
+        ],
+        "random_yaw": true,
+        "palettes": [
+          "default",
+          "autumn"
+        ]
+      },
+      "parts": [
+        "Trunk",
+        "Canopy"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "tree_ornamental_a_small",
+      "family": "trees",
+      "file": "res://assets/models/trees/tree_ornamental_a_small.glb",
+      "size": [
+        4.057,
+        5.043,
+        3.536
+      ],
+      "triangles": 520,
+      "visual_only": false,
+      "collision": {
+        "kind": "tree",
+        "trunk_radius": 0.609,
+        "trunk_height": 1.144,
+        "crowns": [
+          {
+            "center": [
+              1.238,
+              2.711,
+              -0.405
+            ],
+            "radius": 2.186
+          },
+          {
+            "center": [
+              -0.446,
+              3.722,
+              0.174
+            ],
+            "radius": 2.278
+          }
+        ]
+      },
+      "variation": {
+        "scale": [
+          0.85,
+          1.15
+        ],
+        "random_yaw": true,
+        "palettes": [
+          "default",
+          "autumn"
+        ]
+      },
+      "parts": [
+        "Trunk",
+        "Canopy"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "tree_ornamental_b_small",
+      "family": "trees",
+      "file": "res://assets/models/trees/tree_ornamental_b_small.glb",
+      "size": [
+        4.203,
+        4.67,
+        3.629
+      ],
+      "triangles": 520,
+      "visual_only": false,
+      "collision": {
+        "kind": "tree",
+        "trunk_radius": 0.468,
+        "trunk_height": 1.629,
+        "crowns": [
+          {
+            "center": [
+              -1.016,
+              3.086,
+              -0.044
+            ],
+            "radius": 2.317
+          },
+          {
+            "center": [
+              1.009,
+              3.151,
+              0.152
+            ],
+            "radius": 2.252
+          }
+        ]
+      },
+      "variation": {
+        "scale": [
+          0.85,
+          1.15
+        ],
+        "random_yaw": true,
+        "palettes": [
+          "default",
+          "autumn"
+        ]
+      },
+      "parts": [
+        "Trunk",
+        "Canopy"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "tree_pine_a_medium",
+      "family": "trees",
+      "file": "res://assets/models/trees/tree_pine_a_medium.glb",
+      "size": [
+        6.211,
+        11.301,
+        6.237
+      ],
+      "triangles": 778,
+      "visual_only": false,
+      "collision": {
+        "kind": "tree",
+        "trunk_radius": 0.327,
+        "trunk_height": 0.494,
+        "crowns": [
+          {
+            "center": [
+              0.171,
+              6.806,
+              0.133
+            ],
+            "radius": 4.546
+          },
+          {
+            "center": [
+              0.014,
+              2.74,
+              0.015
+            ],
+            "radius": 4.125
+          }
+        ]
+      },
+      "variation": {
+        "scale": [
+          0.85,
+          1.15
+        ],
+        "random_yaw": true,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Trunk",
+        "Canopy"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "tree_pine_a_tall",
+      "family": "trees",
+      "file": "res://assets/models/trees/tree_pine_a_tall.glb",
+      "size": [
+        5.426,
+        17.511,
+        5.467
+      ],
+      "triangles": 938,
+      "visual_only": false,
+      "collision": {
+        "kind": "tree",
+        "trunk_radius": 0.489,
+        "trunk_height": 0.0,
+        "crowns": [
+          {
+            "center": [
+              0.05,
+              2.757,
+              0.041
+            ],
+            "radius": 4.042
+          },
+          {
+            "center": [
+              0.259,
+              12.709,
+              0.209
+            ],
+            "radius": 4.853
+          },
+          {
+            "center": [
+              0.157,
+              7.655,
+              0.125
+            ],
+            "radius": 3.236
+          }
+        ]
+      },
+      "variation": {
+        "scale": [
+          0.85,
+          1.15
+        ],
+        "random_yaw": true,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Trunk",
+        "Canopy"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "tree_pine_b_medium",
+      "family": "trees",
+      "file": "res://assets/models/trees/tree_pine_b_medium.glb",
+      "size": [
+        5.416,
+        11.0,
+        5.315
+      ],
+      "triangles": 810,
+      "visual_only": false,
+      "collision": {
+        "kind": "tree",
+        "trunk_radius": 0.392,
+        "trunk_height": 0.559,
+        "crowns": [
+          {
+            "center": [
+              -0.047,
+              2.72,
+              0.075
+            ],
+            "radius": 3.69
+          },
+          {
+            "center": [
+              -0.0,
+              6.661,
+              0.247
+            ],
+            "radius": 4.392
+          }
+        ]
+      },
+      "variation": {
+        "scale": [
+          0.85,
+          1.15
+        ],
+        "random_yaw": true,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Trunk",
+        "Canopy"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "tree_pine_b_tall",
+      "family": "trees",
+      "file": "res://assets/models/trees/tree_pine_b_tall.glb",
+      "size": [
+        5.333,
+        18.196,
+        5.334
+      ],
+      "triangles": 922,
+      "visual_only": false,
+      "collision": {
+        "kind": "tree",
+        "trunk_radius": 0.644,
+        "trunk_height": 0.055,
+        "crowns": [
+          {
+            "center": [
+              -0.005,
+              2.65,
+              0.095
+            ],
+            "radius": 3.698
+          },
+          {
+            "center": [
+              -0.068,
+              13.36,
+              0.467
+            ],
+            "radius": 4.889
+          },
+          {
+            "center": [
+              -0.034,
+              7.977,
+              0.281
+            ],
+            "radius": 3.401
+          }
+        ]
+      },
+      "variation": {
+        "scale": [
+          0.85,
+          1.15
+        ],
+        "random_yaw": true,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Trunk",
+        "Canopy"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "tree_pine_c_medium",
+      "family": "trees",
+      "file": "res://assets/models/trees/tree_pine_c_medium.glb",
+      "size": [
+        6.531,
+        11.298,
+        6.303
+      ],
+      "triangles": 794,
+      "visual_only": false,
+      "collision": {
+        "kind": "tree",
+        "trunk_radius": 0.477,
+        "trunk_height": 0.511,
+        "crowns": [
+          {
+            "center": [
+              -0.286,
+              6.837,
+              0.086
+            ],
+            "radius": 4.515
+          },
+          {
+            "center": [
+              -0.111,
+              2.647,
+              0.046
+            ],
+            "radius": 3.973
+          }
+        ]
+      },
+      "variation": {
+        "scale": [
+          0.85,
+          1.15
+        ],
+        "random_yaw": true,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Trunk",
+        "Canopy"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "tree_pine_c_tall",
+      "family": "trees",
+      "file": "res://assets/models/trees/tree_pine_c_tall.glb",
+      "size": [
+        5.485,
+        17.492,
+        5.615
+      ],
+      "triangles": 938,
+      "visual_only": false,
+      "collision": {
+        "kind": "tree",
+        "trunk_radius": 0.747,
+        "trunk_height": 0.054,
+        "crowns": [
+          {
+            "center": [
+              -0.104,
+              2.606,
+              0.029
+            ],
+            "radius": 3.83
+          },
+          {
+            "center": [
+              -0.319,
+              7.615,
+              0.099
+            ],
+            "radius": 3.315
+          },
+          {
+            "center": [
+              -0.537,
+              12.908,
+              0.161
+            ],
+            "radius": 4.638
+          }
+        ]
+      },
+      "variation": {
+        "scale": [
+          0.85,
+          1.15
+        ],
+        "random_yaw": true,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Trunk",
+        "Canopy"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "tree_poplar_a",
+      "family": "trees",
+      "file": "res://assets/models/trees/tree_poplar_a.glb",
+      "size": [
+        3.747,
+        12.038,
+        4.05
+      ],
+      "triangles": 420,
+      "visual_only": false,
+      "collision": {
+        "kind": "tree",
+        "trunk_radius": 0.24,
+        "trunk_height": 1.756,
+        "crowns": [
+          {
+            "center": [
+              0.08,
+              9.404,
+              -0.003
+            ],
+            "radius": 2.813
+          },
+          {
+            "center": [
+              -0.032,
+              5.023,
+              -0.051
+            ],
+            "radius": 3.33
+          }
+        ]
+      },
+      "variation": {
+        "scale": [
+          0.85,
+          1.15
+        ],
+        "random_yaw": true,
+        "palettes": [
+          "default",
+          "autumn"
+        ]
+      },
+      "parts": [
+        "Trunk",
+        "Canopy"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "tree_poplar_b",
+      "family": "trees",
+      "file": "res://assets/models/trees/tree_poplar_b.glb",
+      "size": [
+        2.628,
+        11.679,
+        2.854
+      ],
+      "triangles": 740,
+      "visual_only": false,
+      "collision": {
+        "kind": "tree",
+        "trunk_radius": 0.22,
+        "trunk_height": 1.8,
+        "crowns": [
+          {
+            "center": [
+              0.156,
+              5.726,
+              0.016
+            ],
+            "radius": 3.978
+          },
+          {
+            "center": [
+              0.257,
+              9.255,
+              0.022
+            ],
+            "radius": 2.474
+          }
+        ]
+      },
+      "variation": {
+        "scale": [
+          0.85,
+          1.15
+        ],
+        "random_yaw": true,
+        "palettes": [
+          "default",
+          "autumn"
+        ]
+      },
+      "parts": [
+        "Trunk",
+        "Canopy"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "yardage_marker_100",
+      "family": "props",
+      "file": "res://assets/models/props/yardage_marker_100.glb",
+      "size": [
+        0.36,
+        0.9,
+        0.15
+      ],
+      "triangles": 228,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          1.0,
+          1.0
+        ],
+        "random_yaw": false,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Post",
+        "Cap",
+        "Plate"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "yardage_marker_150",
+      "family": "props",
+      "file": "res://assets/models/props/yardage_marker_150.glb",
+      "size": [
+        0.36,
+        0.9,
+        0.15
+      ],
+      "triangles": 228,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          1.0,
+          1.0
+        ],
+        "random_yaw": false,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Post",
+        "Cap",
+        "Plate"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "yardage_marker_200",
+      "family": "props",
+      "file": "res://assets/models/props/yardage_marker_200.glb",
+      "size": [
+        0.36,
+        0.9,
+        0.15
+      ],
+      "triangles": 228,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          1.0,
+          1.0
+        ],
+        "random_yaw": false,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Post",
+        "Cap",
+        "Plate"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "yardage_marker_250",
+      "family": "props",
+      "file": "res://assets/models/props/yardage_marker_250.glb",
+      "size": [
+        0.36,
+        0.9,
+        0.15
+      ],
+      "triangles": 228,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          1.0,
+          1.0
+        ],
+        "random_yaw": false,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Post",
+        "Cap",
+        "Plate"
+      ],
+      "pivot": "base"
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+# Godot imports and editor cache
+.godot/
+# .NET build outputs
+**/bin/
+**/obj/

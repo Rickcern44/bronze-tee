@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="HoleDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/course/hole_definition.gd" id="1_hole"]
+
+[resource]
+script = ExtResource("1_hole")
+number = 2
+display_name = "Hole 2"
+par = 3
+yards = 207.0
+tee_position = Vector2(0, 8)
+tee_ellipse = Vector4(0, 8, 6, 4)
+blue_tee_offset = Vector2(0, 15.54)
+black_tee_offset = Vector2(0, 33.83)
+blue_tee_yards = 224.0
+black_tee_yards = 244.0
+cup_position = Vector2(0, -186.03)
+fairway_centerline = Array[Vector2]([Vector2(0, 0), Vector2(2.84, -122.57), Vector2(0, -186.03)])
+fairway_sway = 0.0
+elevation_file = "res://assets/terrain/royal_crest_02.f32"
+elevation_origin = Vector2(-120, 100)
+elevation_spacing = 2.0
+elevation_dimensions = Vector2i(161, 301)
+water_ellipses = Array[Vector4]([Vector4(-42, -103, 22, 83)])
+tree_count = 10
+trees_on_left = false

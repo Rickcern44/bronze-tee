@@ -1,0 +1,569 @@
+{
+  "version": 1,
+  "family": "props",
+  "assets": [
+    {
+      "id": "cup",
+      "family": "props",
+      "file": "res://assets/models/props/cup.glb",
+      "size": [
+        0.12,
+        0.102,
+        0.12
+      ],
+      "triangles": 192,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          1.0,
+          1.0
+        ],
+        "random_yaw": false,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Liner"
+      ],
+      "pivot": "rim"
+    },
+    {
+      "id": "flagstick_blue",
+      "family": "props",
+      "file": "res://assets/models/props/flagstick_blue.glb",
+      "size": [
+        0.518,
+        2.13,
+        0.11
+      ],
+      "triangles": 288,
+      "visual_only": false,
+      "collision": {
+        "kind": "cylinder",
+        "radius": 0.0125,
+        "height": 2.13
+      },
+      "variation": {
+        "scale": [
+          1.0,
+          1.0
+        ],
+        "random_yaw": false,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Pole",
+        "Flag"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "flagstick_red",
+      "family": "props",
+      "file": "res://assets/models/props/flagstick_red.glb",
+      "size": [
+        0.518,
+        2.13,
+        0.11
+      ],
+      "triangles": 288,
+      "visual_only": false,
+      "collision": {
+        "kind": "cylinder",
+        "radius": 0.0125,
+        "height": 2.13
+      },
+      "variation": {
+        "scale": [
+          1.0,
+          1.0
+        ],
+        "random_yaw": false,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Pole",
+        "Flag"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "flagstick_yellow",
+      "family": "props",
+      "file": "res://assets/models/props/flagstick_yellow.glb",
+      "size": [
+        0.518,
+        2.13,
+        0.11
+      ],
+      "triangles": 288,
+      "visual_only": false,
+      "collision": {
+        "kind": "cylinder",
+        "radius": 0.0125,
+        "height": 2.13
+      },
+      "variation": {
+        "scale": [
+          1.0,
+          1.0
+        ],
+        "random_yaw": false,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Pole",
+        "Flag"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "tee_marker_ball_blue",
+      "family": "props",
+      "file": "res://assets/models/props/tee_marker_ball_blue.glb",
+      "size": [
+        0.552,
+        0.53,
+        0.58
+      ],
+      "triangles": 80,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          0.95,
+          1.05
+        ],
+        "random_yaw": false,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Body"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "tee_marker_ball_gold",
+      "family": "props",
+      "file": "res://assets/models/props/tee_marker_ball_gold.glb",
+      "size": [
+        0.552,
+        0.53,
+        0.58
+      ],
+      "triangles": 80,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          0.95,
+          1.05
+        ],
+        "random_yaw": false,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Body"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "tee_marker_ball_red",
+      "family": "props",
+      "file": "res://assets/models/props/tee_marker_ball_red.glb",
+      "size": [
+        0.552,
+        0.53,
+        0.58
+      ],
+      "triangles": 80,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          0.95,
+          1.05
+        ],
+        "random_yaw": false,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Body"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "tee_marker_ball_white",
+      "family": "props",
+      "file": "res://assets/models/props/tee_marker_ball_white.glb",
+      "size": [
+        0.552,
+        0.53,
+        0.58
+      ],
+      "triangles": 80,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          0.95,
+          1.05
+        ],
+        "random_yaw": false,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Body"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "tee_marker_block_blue",
+      "family": "props",
+      "file": "res://assets/models/props/tee_marker_block_blue.glb",
+      "size": [
+        0.3,
+        0.22,
+        0.22
+      ],
+      "triangles": 108,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          0.95,
+          1.05
+        ],
+        "random_yaw": false,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Body"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "tee_marker_block_gold",
+      "family": "props",
+      "file": "res://assets/models/props/tee_marker_block_gold.glb",
+      "size": [
+        0.3,
+        0.22,
+        0.22
+      ],
+      "triangles": 108,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          0.95,
+          1.05
+        ],
+        "random_yaw": false,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Body"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "tee_marker_block_red",
+      "family": "props",
+      "file": "res://assets/models/props/tee_marker_block_red.glb",
+      "size": [
+        0.3,
+        0.22,
+        0.22
+      ],
+      "triangles": 108,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          0.95,
+          1.05
+        ],
+        "random_yaw": false,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Body"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "tee_marker_block_white",
+      "family": "props",
+      "file": "res://assets/models/props/tee_marker_block_white.glb",
+      "size": [
+        0.3,
+        0.22,
+        0.22
+      ],
+      "triangles": 108,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          0.95,
+          1.05
+        ],
+        "random_yaw": false,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Body"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "tee_marker_tee_blue",
+      "family": "props",
+      "file": "res://assets/models/props/tee_marker_tee_blue.glb",
+      "size": [
+        0.176,
+        0.44,
+        0.176
+      ],
+      "triangles": 240,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          0.95,
+          1.05
+        ],
+        "random_yaw": false,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Body"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "tee_marker_tee_gold",
+      "family": "props",
+      "file": "res://assets/models/props/tee_marker_tee_gold.glb",
+      "size": [
+        0.176,
+        0.44,
+        0.176
+      ],
+      "triangles": 240,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          0.95,
+          1.05
+        ],
+        "random_yaw": false,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Body"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "tee_marker_tee_red",
+      "family": "props",
+      "file": "res://assets/models/props/tee_marker_tee_red.glb",
+      "size": [
+        0.176,
+        0.44,
+        0.176
+      ],
+      "triangles": 240,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          0.95,
+          1.05
+        ],
+        "random_yaw": false,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Body"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "tee_marker_tee_white",
+      "family": "props",
+      "file": "res://assets/models/props/tee_marker_tee_white.glb",
+      "size": [
+        0.176,
+        0.44,
+        0.176
+      ],
+      "triangles": 240,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          0.95,
+          1.05
+        ],
+        "random_yaw": false,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Body"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "yardage_marker_100",
+      "family": "props",
+      "file": "res://assets/models/props/yardage_marker_100.glb",
+      "size": [
+        0.36,
+        0.9,
+        0.15
+      ],
+      "triangles": 228,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          1.0,
+          1.0
+        ],
+        "random_yaw": false,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Post",
+        "Cap",
+        "Plate"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "yardage_marker_150",
+      "family": "props",
+      "file": "res://assets/models/props/yardage_marker_150.glb",
+      "size": [
+        0.36,
+        0.9,
+        0.15
+      ],
+      "triangles": 228,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          1.0,
+          1.0
+        ],
+        "random_yaw": false,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Post",
+        "Cap",
+        "Plate"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "yardage_marker_200",
+      "family": "props",
+      "file": "res://assets/models/props/yardage_marker_200.glb",
+      "size": [
+        0.36,
+        0.9,
+        0.15
+      ],
+      "triangles": 228,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          1.0,
+          1.0
+        ],
+        "random_yaw": false,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Post",
+        "Cap",
+        "Plate"
+      ],
+      "pivot": "base"
+    },
+    {
+      "id": "yardage_marker_250",
+      "family": "props",
+      "file": "res://assets/models/props/yardage_marker_250.glb",
+      "size": [
+        0.36,
+        0.9,
+        0.15
+      ],
+      "triangles": 228,
+      "visual_only": true,
+      "collision": null,
+      "variation": {
+        "scale": [
+          1.0,
+          1.0
+        ],
+        "random_yaw": false,
+        "palettes": [
+          "default"
+        ]
+      },
+      "parts": [
+        "Post",
+        "Cap",
+        "Plate"
+      ],
+      "pivot": "base"
+    }
+  ]
+}
