@@ -17,6 +17,7 @@
 | `tools/check.sh` (new, mode 755) | The one gate command. |
 | `tools/install-hooks.sh` (new, mode 755) | Writes `.git/hooks/pre-commit`. |
 | `.git/hooks/pre-commit` (generated, not committed) | Runs `./tools/check.sh`. |
+| `tools/playtest.sh` (new, mode 755) | Runs one playtest: `./tools/playtest.sh <slug>`. |
 | `tests/playtest/normal_game_playtest.gd` (new) | Scripted playtest of the normal game with screenshots. |
 | `docs/design/GDD.md`, `docs/slices/check-gate.md` | Written by dev-design; commit them with the slice, do not edit. |
 | `README.md` | Add one section "Check gate" (see step 7). |
@@ -76,7 +77,12 @@ If any of N1 to N4 does not behave as stated, that is a spec gap: report it to d
 No new or changed `tests/*_check.gd`. The 27 existing ones are run unchanged by stage 4.
 
 ## 8. Playtest script: `tests/playtest/normal_game_playtest.gd`
-`extends SceneTree`. Run:
+`extends SceneTree`. Run with the wrapper (the only supported way; it isolates Godot paths so a read-only HOME does not matter):
+`./tools/playtest.sh normal_game`
+
+`tools/playtest.sh <slug>` (bash, `set -u -o pipefail`, cd to repo root): `LOGDIR=$(mktemp -d)`, trap-remove it; `mkdir` and export `XDG_CONFIG_HOME`, `XDG_DATA_HOME`, `XDG_CACHE_HOME` under `$LOGDIR`; run `xvfb-run -a -s "-screen 0 1280x720x24" timeout 300 godot --audio-driver Dummy --path . --script res://tests/playtest/<slug>_playtest.gd 2>&1 | tee "$LOGDIR/out.log"`; keep the exit code; then if `out.log` matches `SCRIPT ERROR|Assertion failed|^ERROR:` print `FAIL log scan: <matching lines>` and exit 1; if the script exit code is non-zero exit with it; else print `PLAYTEST PASSED`. Exit 2 with a usage message if the script file does not exist.
+
+The raw command it wraps, for reference only:
 `xvfb-run -a -s "-screen 0 1280x720x24" timeout 300 godot --audio-driver Dummy --path . --script res://tests/playtest/normal_game_playtest.gd`
 
 Use `call_deferred("run")` in `_initialize`, `var game = load("res://scenes/main.tscn").instantiate(); root.add_child(game)`. Create `OUT_DIR` with `DirAccess.make_dir_recursive_absolute`. Helper `wait(n)`: `for i in n: await process_frame`. Helper `shot(name)`: `await RenderingServer.frame_post_draw`, then `root.get_viewport().get_texture().get_image().save_png(OUT_DIR + "/" + name + ".png")`. Helper `step(n, ok, text)`: print `PASS step N: text` or `FAIL step N: text`. After the last step, `quit(0 if no failures else 1)`.
@@ -90,7 +96,7 @@ A screenshot is "valid" when the file exists, width 1280 and height 720, and the
 | 3 | Call `game._load_hole(0)`. Place ball near cup: `game.ball_position = game.CUP + Vector3(0, game.BALL_RADIUS, 6.0)`; `game.ball.position = game.ball_position`; `game._update_hud()` | `wait(STEP_FRAMES)` | `03_near_cup_flag.png` | `game.ball_position.distance_to(game.CUP)` between 5.5 and 6.5, screenshot valid. **Evidence for the operator:** this image should show the flag (currently red). Reporter states what colour the flag is in the image. |
 | 4 | Call `game._load_hole(0)`, wait, then drive one real shot with synthetic mouse input via `Input.parse_input_event`: press left button at (640, 400); motion to (640, 460) (pull back); motion to (640, 200) (swipe up); release. Every motion event sets both `relative` and `screen_relative` (the game reads `screen_relative`). Send each event, then `wait(2)`. | `wait(120)` frames or until `game.in_motion` becomes false after having been true, max 600 frames | `04_after_shot.png` | `game.strokes == 1` and `game.in_motion == false`, screenshot valid. If synthetic input does not produce a stroke, report the exact events tried and the values of `swing_active`, `backswing`, `strokes`; do not substitute method calls without telling dev-design. |
 | 5 | Call `game._reset_ball()` (restart, same as R) | `wait(STEP_FRAMES)` | `05_restart.png` | `game.strokes == 0`, screenshot valid |
-| 6 | Collect the log | n/a | none | no `SCRIPT ERROR` or `ERROR:` line appeared in the output of the whole run (the gate runner greps the captured stdout) and exit code is 0 |
+| 6 | Log scan | n/a | none | performed by `tools/playtest.sh`, not by the .gd script: no `SCRIPT ERROR`, `Assertion failed` or `^ERROR:` line in the captured output, and exit code 0. The .gd script prints `PASS step 6: no earlier step failed` itself; the wrapper prints `PLAYTEST PASSED` only if the scan is also clean |
 
 Playtester (Luna) reads each PNG and reports for each step: pass or fail, plus one line describing what the image shows (hole, ball, HUD visible, flag colour in step 3). Do not report anything about game feel.
 
@@ -98,7 +104,7 @@ Playtester (Luna) reads each PNG and reports for each step: pass or fail, plus o
 1. `./tools/check.sh` exits 0 and prints `CHECK GATE PASSED`.
 2. N1 to N4 reported with their actual output.
 3. `.git/hooks/pre-commit` exists and is executable; the commit of this slice went through it.
-4. Playtest prints `PASS step 1` to `PASS step 6`; `playtest-output/normal_game/` contains the five PNGs.
+4. `./tools/playtest.sh normal_game` prints `PASS step 1` to `PASS step 6` and `PLAYTEST PASSED`, also with `HOME` set to a read-only directory; `playtest-output/normal_game/` contains the five PNGs.
 5. `git diff` for the slice touches only the files in section 2, and no flag colour or `HudPalette.FLAG` change. (Note: `HudPalette.FLAG` is `F0562E`, a UI accent also used for the tree warning marker and ball trail; the course flag object has not been located yet. Locating it is the first task of the blue-flag slice, not this one.)
 
 ## 9. Out of scope

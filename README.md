@@ -118,4 +118,4 @@ Run `./tools/check.sh` before any change is done. It builds the Godot project wi
 
 Run `./tools/install-hooks.sh` once per clone. It writes `.git/hooks/pre-commit`, so each commit runs the gate.
 
-Run the normal-game playtest with `xvfb-run -a -s "-screen 0 1280x720x24" timeout 300 godot --audio-driver Dummy --path . --script res://tests/playtest/normal_game_playtest.gd`. It saves screenshots to `playtest-output/normal_game/`.
+Run the normal-game playtest with `./tools/playtest.sh normal_game`. It runs the playtest under Xvfb with Godot config, data and cache kept in a temp directory, scans the output for error lines, and prints `PLAYTEST PASSED`. Screenshots go to `playtest-output/normal_game/`.

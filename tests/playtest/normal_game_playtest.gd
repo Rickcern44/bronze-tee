@@ -1,7 +1,7 @@
 extends SceneTree
 # Scripted playtest of the normal game: loads main.tscn, sends real input,
 # saves screenshots to playtest-output/normal_game/ and prints PASS/FAIL per step.
-# Run: xvfb-run -a -s "-screen 0 1280x720x24" timeout 300 godot --audio-driver Dummy --path . --script res://tests/playtest/normal_game_playtest.gd
+# Run: ./tools/playtest.sh normal_game
 
 const OUT_DIR := "playtest-output/normal_game"
 const STEP_FRAMES := 10
@@ -135,6 +135,6 @@ func run() -> void:
 
 	# Step 6: no error lines. The gate runner greps the captured stdout for
 	# SCRIPT ERROR / ERROR: lines; this step records that steps 1-5 passed.
-	step(6, failures == 0, "steps 1-5 passed; log scan for error lines is done by the runner")
+	step(6, failures == 0, "no earlier step failed")
 
 	quit(0 if failures == 0 else 1)
