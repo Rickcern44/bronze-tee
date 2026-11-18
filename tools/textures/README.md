@@ -8,10 +8,11 @@ its own `random.Random` from a hash of its id.
 
 - `tex_kit.py`: shared helpers (periodic noise, colour ramps, wrapped strokes,
   pebbles, cracks, PNG save, manifest entry, contact sheet).
-- `families/turf.py`, `families/sand.py`, `families/ground.py`: one module per
-  family. Each exposes `build(out_dir) -> list of manifest entries`.
-- `build.py`: runs every family, writes the PNGs, `manifest.json`, and
-  `_previews/p0.png` (contact sheet).
+- `families/turf.py`, `sand.py`, `ground.py` (P0) and `families/water.py`,
+  `cover.py`, `rock.py`, `bark.py` (P1): one module per family. Each exposes
+  `build(out_dir) -> list of manifest entries`.
+- `build.py`: runs every family, writes the PNGs, `manifest.json`, and the
+  contact sheets `_previews/p0.png` (P0 only) and `_previews/p1.png` (P1 only).
 - `validate.py`: checks the manifest and PNGs (size, avg colour, edge seams, unique ids).
 
 Outputs go to `assets/textures/library/<category>/<id>.png` and
@@ -26,6 +27,22 @@ python3 tools/textures/validate.py
 ```
 
 Use the system Python 3 with Pillow installed. `validate.py` exits with code 1 on any failure.
+
+## Catalog
+
+Ids are the file names under `assets/textures/library/<category>/`.
+
+| Phase | Category | Ids |
+| --- | --- | --- |
+| P0 | turf | fairway_light, fairway_dark, first_cut, second_cut, deep_rough, collar, green, native_fescue |
+| P0 | sand | bunker_sand, bunker_sand_raked |
+| P0 | ground | dirt, gravel_path, cart_path |
+| P1 | water | water_deep, water_shallow |
+| P1 | cover | mud, leaf_litter, pine_needles, moss, wildflower_meadow |
+| P1 | rock | rock_grey, cliff_strata, cobble |
+| P1 | bark | bark_oak, bark_pine, bark_birch |
+
+Each entry's `use` line in `manifest.json` describes it.
 
 ## Adding a texture
 

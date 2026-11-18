@@ -85,15 +85,15 @@ var PATH_PAST_CUP := 15.0
 const MAX_WATER_FEATURES := 4
 const TERRAIN_ALBEDO_GAIN := 0.75 # keeps the bright scene lighting from clipping the textures
 const TERRAIN_TEXTURES := {
-	"green_texture": "res://assets/textures/terrain/green.png",
-	"collar_texture": "res://assets/textures/terrain/collar.png",
-	"fairway_light_texture": "res://assets/textures/terrain/fairway_light.png",
-	"fairway_dark_texture": "res://assets/textures/terrain/fairway_dark.png",
-	"first_cut_texture": "res://assets/textures/terrain/first_cut.png",
-	"second_cut_texture": "res://assets/textures/terrain/second_cut.png",
-	"deep_rough_texture": "res://assets/textures/terrain/deep_rough.png",
+	"green_texture": "res://assets/textures/library/turf/green.png",
+	"collar_texture": "res://assets/textures/library/turf/collar.png",
+	"fairway_light_texture": "res://assets/textures/library/turf/fairway_light.png",
+	"fairway_dark_texture": "res://assets/textures/library/turf/fairway_dark.png",
+	"first_cut_texture": "res://assets/textures/library/turf/first_cut.png",
+	"second_cut_texture": "res://assets/textures/library/turf/second_cut.png",
+	"deep_rough_texture": "res://assets/textures/library/turf/deep_rough.png",
 	"water_texture": "res://assets/textures/terrain/water.png",
-	"path_texture": "res://assets/textures/terrain/cart_path.png",
+	"path_texture": "res://assets/textures/library/ground/cart_path.png",
 }
 var CUP := Vector3(0, 0, -322.7832) # Repositioned to each hole's white-tee distance.
 const CUP_RADIUS = 0.10795 / 2.0

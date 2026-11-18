@@ -200,6 +200,105 @@ def draw_dots(img, rng, count, radius, colours, outline_shade=0.75):
                 draw.ellipse((cx - r, cy - r, cx + r, cy + r), fill=fill, outline=rim)
 
 
+def shade(colour, k):
+    """Scale an RGB colour by k (clamped to bytes)."""
+    return tuple(clamp_byte(c * k) for c in colour)
+
+
+def smoothstep(t):
+    t = 0.0 if t < 0.0 else (1.0 if t > 1.0 else t)
+    return t * t * (3.0 - 2.0 * t)
+
+
+def caustic_field(field, power=4.0):
+    """Bright ridge network from a noise field: 1 on the ridges, 0 in the troughs."""
+    return [(1.0 - abs(2.0 * v - 1.0)) ** power for v in field]
+
+
+def mask_from_field(field, gamma=1.0):
+    """L-mode mask from a field in [0, 1]."""
+    mask = Image.new("L", (SIZE, SIZE))
+    mask.putdata([clamp_byte(255.0 * ((min(1.0, max(0.0, v))) ** gamma)) for v in field])
+    return mask
+
+
+def composite_field(base, overlay, field, gamma=1.0):
+    """Blend overlay over base where field is high (soft patches, sheen, lichen)."""
+    return Image.composite(overlay, base, mask_from_field(field, gamma))
+
+
+def draw_shapes(img, rng, count, radius, sides, colours, aspect=1.0, irregular=0.0,
+                outline_shade=0.8, shadow=None, centers=None, upright=False):
+    """Irregular filled polygons (leaves, stones, chips, bark plates), wrapped at the edges.
+
+    radius: (min, max) in px. aspect: squash factor on the local y axis (leaves: ~0.5).
+    irregular: vertex radius jitter fraction. shadow: optional (dx, dy, shade) drawn
+    under each shape. centers: optional fixed [(x, y), ...] (count is then ignored).
+    """
+    draw = ImageDraw.Draw(img)
+    if centers is None:
+        centers = [(rng.randrange(SIZE), rng.randrange(SIZE)) for _ in range(count)]
+    for cx, cy in centers:
+        r = rng.uniform(radius[0], radius[1])
+        rot = rng.uniform(0, TWO_PI)  # always drawn, so the rng sequence is unchanged
+        if upright:
+            rot = 0.0  # keep the aspect ratio on the vertical axis
+        cos_r, sin_r = math.cos(rot), math.sin(rot)
+        verts = []
+        for k in range(sides):
+            a = TWO_PI * k / sides
+            rr = r * (1.0 + irregular * rng.uniform(-1.0, 1.0))
+            vx, vy = math.cos(a) * rr, math.sin(a) * rr * aspect
+            verts.append((vx * cos_r - vy * sin_r, vx * sin_r + vy * cos_r))
+        fill = rng.choice(colours)
+        layers = []
+        if shadow is not None:
+            dark = shade(fill, shadow[2])
+            layers.append((shadow[0], shadow[1], dark, dark))
+        layers.append((0.0, 0.0, fill, shade(fill, outline_shade)))
+        for dx, dy, colour, edge in layers:
+            for ox in (-SIZE, 0, SIZE):
+                for oy in (-SIZE, 0, SIZE):
+                    poly = [(cx + ox + dx + vx, cy + oy + dy + vy) for vx, vy in verts]
+                    xs = [p[0] for p in poly]
+                    ys = [p[1] for p in poly]
+                    if max(xs) < 0 or min(xs) >= SIZE or max(ys) < 0 or min(ys) >= SIZE:
+                        continue
+                    draw.polygon(poly, fill=colour, outline=edge)
+
+
+def draw_wave_segments(img, rng, count, length, amp, period, colour_fn, width=1):
+    """Irregular ripple lines: short wavy segments at random places, lengths, angles and brightness.
+
+    length: (min, max) px along the segment. amp: wave height px (each segment gets a random
+    fraction of it). period: wave length px (random per segment). colour_fn(rng) -> RGB.
+    Segments wrap at the edges.
+    """
+    draw = ImageDraw.Draw(img)
+    for _ in range(count):
+        x0 = rng.randrange(SIZE)
+        y0 = rng.randrange(SIZE)
+        seg_len = rng.uniform(length[0], length[1])
+        angle = rng.uniform(-0.12, 0.12)
+        height = rng.uniform(0.4, 1.0) * amp
+        wave_len = rng.uniform(period[0], period[1])
+        phase = rng.uniform(0, TWO_PI)
+        colour = colour_fn(rng)
+        steps = max(2, int(seg_len // 4))
+        pts = []
+        for i in range(steps + 1):
+            s = seg_len * i / steps
+            pts.append((s * math.cos(angle), s * math.sin(angle) + height * math.sin(TWO_PI * s / wave_len + phase)))
+        for ox in (-SIZE, 0, SIZE):
+            for oy in (-SIZE, 0, SIZE):
+                line = [(x0 + ox + px, y0 + oy + py) for px, py in pts]
+                xs = [p[0] for p in line]
+                ys = [p[1] for p in line]
+                if max(xs) < -width or min(xs) >= SIZE + width or max(ys) < -width or min(ys) >= SIZE + width:
+                    continue
+                draw.line(line, fill=colour, width=width)
+
+
 def save_texture(out_dir, category, texture_id, img, use):
     """Write the PNG and return its manifest entry (avg_color is read back from the saved file)."""
     path = Path(out_dir) / category / (texture_id + ".png")

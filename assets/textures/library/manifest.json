@@ -2,6 +2,45 @@
   "version": 1,
   "assets": [
     {
+      "id": "bark_birch",
+      "category": "bark",
+      "file": "res://assets/textures/library/bark/bark_birch.png",
+      "size": [
+        512,
+        512
+      ],
+      "tileable": true,
+      "avg_color": "#C0BAAB",
+      "seed": 58105003764956,
+      "use": "Birch bark: pale cream-white with horizontal dark lenticel marks and grey patches."
+    },
+    {
+      "id": "bark_oak",
+      "category": "bark",
+      "file": "res://assets/textures/library/bark/bark_oak.png",
+      "size": [
+        512,
+        512
+      ],
+      "tileable": true,
+      "avg_color": "#6F5236",
+      "seed": 133934308215256,
+      "use": "Oak bark: deep dark-brown vertical furrows and ridges."
+    },
+    {
+      "id": "bark_pine",
+      "category": "bark",
+      "file": "res://assets/textures/library/bark/bark_pine.png",
+      "size": [
+        512,
+        512
+      ],
+      "tileable": true,
+      "avg_color": "#783D29",
+      "seed": 42104274804137,
+      "use": "Pine bark: broad flaky reddish-brown plates with darker gaps."
+    },
+    {
       "id": "bunker_sand",
       "category": "sand",
       "file": "res://assets/textures/library/sand/bunker_sand.png",
@@ -39,6 +78,32 @@
       "avg_color": "#918D86",
       "seed": 112088767812161,
       "use": "Cart path: smooth warm-grey concrete with faint cracks."
+    },
+    {
+      "id": "cliff_strata",
+      "category": "rock",
+      "file": "res://assets/textures/library/rock/cliff_strata.png",
+      "size": [
+        512,
+        512
+      ],
+      "tileable": true,
+      "avg_color": "#908A7D",
+      "seed": 29924726347241,
+      "use": "Cliff strata: horizontal layered bands in grey-beige with some cracks."
+    },
+    {
+      "id": "cobble",
+      "category": "rock",
+      "file": "res://assets/textures/library/rock/cobble.png",
+      "size": [
+        512,
+        512
+      ],
+      "tileable": true,
+      "avg_color": "#655E53",
+      "seed": 214547412813286,
+      "use": "Cobble: rounded grey and tan stones with dark mortar gaps, each stone shaded."
     },
     {
       "id": "collar",
@@ -145,6 +210,45 @@
       "use": "Putting surface: finest, smoothest, brightest turf."
     },
     {
+      "id": "leaf_litter",
+      "category": "cover",
+      "file": "res://assets/textures/library/cover/leaf_litter.png",
+      "size": [
+        512,
+        512
+      ],
+      "tileable": true,
+      "avg_color": "#684726",
+      "seed": 221292751174950,
+      "use": "Leaf litter: overlapping small oval leaves in browns and ochre over dark ground."
+    },
+    {
+      "id": "moss",
+      "category": "cover",
+      "file": "res://assets/textures/library/cover/moss.png",
+      "size": [
+        512,
+        512
+      ],
+      "tileable": true,
+      "avg_color": "#5E964A",
+      "seed": 173805963662466,
+      "use": "Moss: soft clumpy mottled green with lighter tips."
+    },
+    {
+      "id": "mud",
+      "category": "cover",
+      "file": "res://assets/textures/library/cover/mud.png",
+      "size": [
+        512,
+        512
+      ],
+      "tileable": true,
+      "avg_color": "#554434",
+      "seed": 192448887368572,
+      "use": "Mud: dark wet brown, smooth, with soft puddle sheen patches."
+    },
+    {
       "id": "native_fescue",
       "category": "turf",
       "file": "res://assets/textures/library/turf/native_fescue.png",
@@ -158,6 +262,32 @@
       "use": "Native fescue: tall wispy tan-green grass with golden flecks."
     },
     {
+      "id": "pine_needles",
+      "category": "cover",
+      "file": "res://assets/textures/library/cover/pine_needles.png",
+      "size": [
+        512,
+        512
+      ],
+      "tileable": true,
+      "avg_color": "#8C6339",
+      "seed": 91381003049662,
+      "use": "Pine needles: dense fine straight needles in warm browns, random directions."
+    },
+    {
+      "id": "rock_grey",
+      "category": "rock",
+      "file": "res://assets/textures/library/rock/rock_grey.png",
+      "size": [
+        512,
+        512
+      ],
+      "tileable": true,
+      "avg_color": "#807B72",
+      "seed": 197593082826246,
+      "use": "Rock grey: rough grey stone with soft facets and chips, light and dark variation."
+    },
+    {
       "id": "second_cut",
       "category": "turf",
       "file": "res://assets/textures/library/turf/second_cut.png",
@@ -169,6 +299,45 @@
       "avg_color": "#417A34",
       "seed": 141599983571693,
       "use": "Second cut (transition to rough): darker, coarser, longer blades than first_cut."
+    },
+    {
+      "id": "water_deep",
+      "category": "water",
+      "file": "res://assets/textures/library/water/water_deep.png",
+      "size": [
+        512,
+        512
+      ],
+      "tileable": true,
+      "avg_color": "#2C7381",
+      "seed": 182685073353203,
+      "use": "Deep water: teal-blue, large soft undulation, irregular faint ripple lines."
+    },
+    {
+      "id": "water_shallow",
+      "category": "water",
+      "file": "res://assets/textures/library/water/water_shallow.png",
+      "size": [
+        512,
+        512
+      ],
+      "tileable": true,
+      "avg_color": "#66ACA8",
+      "seed": 26788669835846,
+      "use": "Shallow water: lighter bluish-green, finer irregular ripples, soft caustic lines."
+    },
+    {
+      "id": "wildflower_meadow",
+      "category": "cover",
+      "file": "res://assets/textures/library/cover/wildflower_meadow.png",
+      "size": [
+        512,
+        512
+      ],
+      "tileable": true,
+      "avg_color": "#88B160",
+      "seed": 193944800613687,
+      "use": "Wildflower meadow: green grass with sparse pink, yellow and white flowers."
     }
   ]
 }
