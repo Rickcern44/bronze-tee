@@ -111,3 +111,11 @@ To create a supported hole, duplicate that resource, edit its fields, and append
 The generator supports rounded fairways with a smooth dogleg or a short mapped centerline, an elliptical green, up to three tee pads, up to four elliptical water features, a cart path, and deterministic trees. Define the white tee and pad in the hole resource; optional blue and black offsets and scorecard distances add the other pads. Keep the cup at a negative Z and use positive green radii; the terrain extends past the tees and green automatically. Imported elevation grids and procedural hills are supported. Arbitrary surface outlines, bunker authoring, and visual editing are future work.
 
 Run `godot --headless --path . --script res://tests/hole_definition_check.gd` to verify an alternate resource, its shader parameters and physics water, and switching between holes. Run `godot --headless --path . --script res://tests/migrated_holes_check.gd` to check the first three resource-backed layouts and editable hills. Run `godot --headless --path . --script res://tests/fourth_hole_check.gd` to verify hole 4 and the extended terrain.
+
+## Check gate
+
+Run `./tools/check.sh` before any change is done. It builds the Godot project with warnings as errors, runs the xUnit tests under `dotnet/`, runs the Godot import, and runs every `tests/*_check.gd`. It stops at the first failing stage and ends with `CHECK GATE PASSED`.
+
+Run `./tools/install-hooks.sh` once per clone. It writes `.git/hooks/pre-commit`, so each commit runs the gate.
+
+Run the normal-game playtest with `./tools/playtest.sh normal_game`. It runs the playtest under Xvfb with Godot config, data and cache kept in a temp directory, scans the output for error lines, and prints `PLAYTEST PASSED`. Screenshots go to `playtest-output/normal_game/`.
