@@ -42,6 +42,14 @@ for dir in dotnet/*.Tests; do
 	fi
 done
 
+# Godot isolation: stages 3 and 4 write Godot config and data only into the
+# temp dir, never into the runner's ~/.config/godot. HOME is left unchanged
+# because dotnet and NuGet need it.
+mkdir -p "$LOGDIR/config" "$LOGDIR/data" "$LOGDIR/cache"
+export XDG_CONFIG_HOME="$LOGDIR/config"
+export XDG_DATA_HOME="$LOGDIR/data"
+export XDG_CACHE_HOME="$LOGDIR/cache"
+
 # Stage 3: import.
 echo "==> import"
 log="$LOGDIR/import.log"

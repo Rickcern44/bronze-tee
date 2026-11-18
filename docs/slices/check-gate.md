@@ -34,6 +34,8 @@ Stages, in this order:
 
 Bad output line (extended regex, case-sensitive) for stages 3 and 4: `SCRIPT ERROR|Assertion failed|^ERROR:`.
 
+Godot isolation: after creating `LOGDIR`, export `XDG_CONFIG_HOME="$LOGDIR/config"`, `XDG_DATA_HOME="$LOGDIR/data"` and `XDG_CACHE_HOME="$LOGDIR/cache"` (mkdir all three) before stages 3 and 4, so Godot never writes to the runner's `~/.config/godot`, `~/.local/share/godot` or `~/.cache/godot` (the editor help cache) (a seat with a read-only HOME failed import with "Cannot save file editor_settings-4.7.tres"). Do not change `HOME`: dotnet and NuGet need it. Stage 1 and 2 run before the export or are unaffected by it. The project's own `.godot/` cache stays in the repo.
+
 Temp logs go in `mktemp -d` with `trap 'rm -rf "$LOGDIR"' EXIT`.
 
 The script must not run the playtest (it needs Xvfb and is slow). The playtest is run separately.
@@ -65,6 +67,7 @@ No new xUnit tests. Negative tests, each temporary and reverted:
 | N1 | `tests/club_distance_check.gd` has a line `assert(false, "x")` added at the end of `check` (or the equivalent top-level function) | `./tools/check.sh` | exit non-zero; prints `FAIL club_distance_check.gd: bad output line` (a failing assert can leave Godot hanging until the limit, so the bad-line test is applied before the timeout test); later checks do not run |
 | N2 | a temporary `tests/zz_hang_check.gd` containing `func _initialize(): while true: pass`; run with `CHECK_TIMEOUT=10` env override (2 s would also trip the real `migrated_holes_check.gd`) | `./tools/check.sh` | prints `FAIL zz_hang_check.gd: timeout`; exit non-zero. (So `CHECK_TIMEOUT` must be `${CHECK_TIMEOUT:-120}`.) |
 | N3 | a temporary syntax error in `scripts/PhysicsBridge.cs` | `./tools/check.sh` | stage 1 fails, exit non-zero, no later stage runs |
+| N5 | `HOME` points to a read-only empty directory (`HOME=$(mktemp -d); chmod a-w $HOME`) but `DOTNET_CLI_HOME` and `NUGET_PACKAGES` point at the real ones | `./tools/check.sh` | stages 3 and 4 pass (Godot config goes to the temp dir). If the build stage cannot run with that HOME, report it; that is outside this slice |
 | N4 | N1 change in place | `git commit` of an unrelated trivial change | commit is refused by the hook |
 
 If any of N1 to N4 does not behave as stated, that is a spec gap: report it to dev-design.
