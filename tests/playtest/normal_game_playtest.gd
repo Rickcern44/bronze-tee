@@ -1,7 +1,7 @@
 extends SceneTree
 # Scripted playtest of the normal game: loads main.tscn, sends real input,
 # saves screenshots to playtest-output/normal_game/ and prints PASS/FAIL per step.
-# Run: xvfb-run -a -s "-screen 0 1280x720x24" timeout 300 godot --path . --script res://tests/playtest/normal_game_playtest.gd
+# Run: xvfb-run -a -s "-screen 0 1280x720x24" timeout 300 godot --audio-driver Dummy --path . --script res://tests/playtest/normal_game_playtest.gd
 
 const OUT_DIR := "playtest-output/normal_game"
 const STEP_FRAMES := 10
