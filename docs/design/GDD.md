@@ -32,10 +32,11 @@ No lose state. Goal: finish each hole in as few strokes as possible. Scores: par
 | First-cut launch power | lie | 92% |
 | Aim step on green | controls | 0.25 deg (0.05 with Shift) |
 | Swipe sensitivity | controls | 1.0 (0.5 to 2.0) |
-| Course flag colour | not yet located | red (to become blue in the next slice) |
+| Course flag cloth colour | `scripts/main.gd` line 296 (`FLAG_COLOR` after slice 2) | red-orange `(0.96, 0.35, 0.18)` now; blue `(0.08, 0.30, 0.92)` after slice 2. Pole `(0.95, 0.94, 0.82)`, 0.012 x 4 m; flag 1.8 x 0.8 x 0.08 m |
+| HUD accent `HudPalette.FLAG` | `scripts/ui/hud_palette.gd` | `F0562E`; unchanged (tree marker, trail tint) |
 
 ## Current mission
-Mission blue-course-flags: change course flags from red to blue, verified in-game. Slice 1 (`docs/slices/check-gate.md`): build the check gate and a normal-game playtest. Slice 2 (next, not yet specified): the flag colour change.
+Mission blue-course-flags: change course flags from red to blue, verified in-game. Slice 1 (`docs/slices/check-gate.md`): build the check gate and a normal-game playtest. Slice 2 (`docs/slices/blue-flags.md`): flag cloth becomes blue on all four holes; per-hole screenshot playtest.
 
 ## Team gate
 `./tools/check.sh` (build, unit tests, import, headless checks) must pass before any change is done.

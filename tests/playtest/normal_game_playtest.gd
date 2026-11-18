@@ -73,7 +73,7 @@ func run() -> void:
 	step(2, game.hole_index == 1 and valid(img2, "02_hole2_tee"),
 		"hole 2 loaded, screenshot valid")
 
-	# Step 3: ball near the cup. Flag should be visible (currently red).
+	# Step 3: ball near the cup. Flag should be visible (blue).
 	game._load_hole(0)
 	game.ball_position = game.CUP + Vector3(0, game.BALL_RADIUS, 6.0)
 	game.ball.position = game.ball_position

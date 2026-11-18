@@ -82,6 +82,7 @@ var PATH_SWAY_FREQUENCY := 0.012
 var PATH_HALF_WIDTH := 1.8
 var PATH_START_Z := 4.0
 var PATH_PAST_CUP := 15.0
+const FLAG_COLOR := Color(0.08, 0.30, 0.92) # course flag cloth, blue
 const MAX_WATER_FEATURES := 4
 const TERRAIN_ALBEDO_GAIN := 0.75 # keeps the bright scene lighting from clipping the textures
 const TERRAIN_TEXTURES := {
@@ -292,8 +293,10 @@ func _build_world() -> void:
 		if distance > -CUP.z: continue
 		_add_marker(yards, distance)
 	_build_cup()
-	_box(Vector3(CUP.x, _ground_height(CUP.x, CUP.z) + 2.0, CUP.z), Vector3(0.012, 4.0, 0.012), Color(0.95, 0.94, 0.82))
-	_box(Vector3(CUP.x + 0.9, _ground_height(CUP.x, CUP.z) + 3.6, CUP.z), Vector3(1.8, 0.8, 0.08), Color(0.96, 0.35, 0.18))
+	var pole := _box(Vector3(CUP.x, _ground_height(CUP.x, CUP.z) + 2.0, CUP.z), Vector3(0.012, 4.0, 0.012), Color(0.95, 0.94, 0.82))
+	pole.name = "CupPole"
+	var flag := _box(Vector3(CUP.x + 0.9, _ground_height(CUP.x, CUP.z) + 3.6, CUP.z), Vector3(1.8, 0.8, 0.08), FLAG_COLOR)
+	flag.name = "CupFlag"
 	ball_shadow = MeshInstance3D.new()
 	var shadow_mesh := CylinderMesh.new()
 	shadow_mesh.top_radius = 0.045
