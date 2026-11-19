@@ -4,7 +4,7 @@ A desktop-first arcade golf four-hole prototype inspired by the first four holes
 
 ## Mac test downloads
 
-Each push to `main` runs the project checks and builds an Apple silicon Mac app.
+Each push to `main` runs the project checks and builds a Mac app for Apple silicon and Intel.
 When the build succeeds, GitHub publishes a prerelease on the repository's
 [Releases page](https://github.com/Rickcern44/bronze-tee/releases). Download
 `Bronze-Tee-macOS.zip`, unzip it, and open `Bronze Tee.app`. The app is ad-hoc
