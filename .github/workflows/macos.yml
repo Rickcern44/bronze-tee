@@ -59,7 +59,11 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p build
-          godot --headless --path . --export-release macOS build/Bronze-Tee-macOS.zip
+          godot --headless --path . --export-release macOS build/Bronze-Tee-macOS.zip 2>&1 | tee "$RUNNER_TEMP/export.log"
+          if grep -Eq '(^ERROR:|SCRIPT ERROR|Unhandled exception)' "$RUNNER_TEMP/export.log"; then
+            echo 'Godot reported an export error.' >&2
+            exit 1
+          fi
           test -s build/Bronze-Tee-macOS.zip
           unzip -l build/Bronze-Tee-macOS.zip > "$RUNNER_TEMP/archive-list.txt"
           grep -q 'Bronze Tee.app/Contents/MacOS/' "$RUNNER_TEMP/archive-list.txt"
