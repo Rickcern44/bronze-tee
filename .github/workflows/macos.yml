@@ -69,14 +69,46 @@ jobs:
           grep -q 'Bronze Tee.app/Contents/MacOS/' "$RUNNER_TEMP/archive-list.txt"
       - uses: actions/upload-artifact@v4
         with:
-          name: Bronze-Tee-macOS
+          name: Bronze-Tee-unsigned
           path: build/Bronze-Tee-macOS.zip
+          if-no-files-found: error
+          retention-days: 14
+
+  sign-and-test:
+    needs: build
+    runs-on: macos-15
+    timeout-minutes: 15
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: Bronze-Tee-unsigned
+          path: dist
+      - name: Sign and test the Mac app
+        shell: bash
+        run: |
+          set -euo pipefail
+          unzip -q dist/Bronze-Tee-macOS.zip -d "$RUNNER_TEMP/game"
+          app="$RUNNER_TEMP/game/Bronze Tee.app"
+          codesign --force --deep --sign - "$app"
+          codesign --verify --deep --strict "$app"
+          "$app/Contents/MacOS/Bronze Tee" --headless --quit-after 5 > "$RUNNER_TEMP/game.log" 2>&1
+          if grep -Eq '(^ERROR:|SCRIPT ERROR|Unhandled exception)' "$RUNNER_TEMP/game.log"; then
+            head -80 "$RUNNER_TEMP/game.log"
+            echo 'The exported game reported an error.' >&2
+            exit 1
+          fi
+          rm dist/Bronze-Tee-macOS.zip
+          ditto -c -k --sequesterRsrc --keepParent "$app" dist/Bronze-Tee-macOS.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Bronze-Tee-macOS
+          path: dist/Bronze-Tee-macOS.zip
           if-no-files-found: error
           retention-days: 14
 
   release:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: build
+    needs: sign-and-test
     runs-on: ubuntu-latest
     permissions:
       contents: write
