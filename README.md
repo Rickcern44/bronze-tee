@@ -2,6 +2,19 @@
 
 A desktop-first arcade golf four-hole prototype inspired by the first four holes of Royal Crest Golf Club in Columbia Station, Ohio for Godot 4. It uses procedural course visuals and free third-party tree models; no plugins are required.
 
+## Mac test downloads
+
+Each push to `main` runs the project checks and builds an Apple silicon Mac app.
+When the build succeeds, GitHub publishes a prerelease on the repository's
+[Releases page](https://github.com/Rickcern44/bronze-tee/releases). Download
+`Bronze-Tee-macOS.zip`, unzip it, and open `Bronze Tee.app`. The app is ad-hoc
+signed and is not notarized, so macOS can ask you to approve it in Privacy &
+Security. Pull requests run the same checks and provide a temporary Actions
+artifact, but do not publish a release. A failed check does not publish a build.
+
+The workflow uses Godot 4.7.2 .NET and .NET 10. Update the workflow, export
+templates, SDK version, and download checksums together when upgrading Godot.
+
 ## Run
 
 1. Install **Godot 4.7.2 .NET** for macOS or Windows and the .NET 10 SDK.
