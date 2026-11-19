@@ -12,9 +12,9 @@ Paused 2026-11-18. Read `docs/assets/PIPELINE.md` first (rules, contracts, comma
 - Hand-tuned models, if any are made later, go in `assets/models/handmade/` with the same id, pivot and part names. The folder does not exist now (the old copy was a duplicate and was removed).
 
 ### Textures (Pillow pipeline, `tools/textures/`)
-- 26 textures built in `assets/textures/library/` (P0: 13, P1: 13). `validate.py` passes, builds are deterministic.
+- 42 textures built in `assets/textures/library/` (P0: 13, P1: 13, P2: 9, P3: 7). `validate.py` checks the library.
 - P1 fixes are done once. Optional polish remains (see below).
-- Phases P2 and P3 are not started.
+- Phases P2 and P3 were rebuilt after the server copy was lost. Their appearance can differ from that copy. They remain library assets and are not applied to the game.
 
 ### Game wiring (`scripts/main.gd`, `TERRAIN_TEXTURES`)
 Applied from the library: green, collar, fairway_light, fairway_dark, first_cut, second_cut, deep_rough, cart_path.
@@ -31,8 +31,8 @@ The user was going to validate the new textures in the running game. No result h
 2. **In-game check of the new textures.** The user validates the eight applied slots. If they look too bright or dark, the first lever is `TERRAIN_ALBEDO_GAIN` (0.75) in `main.gd`; do not change it without being told. Roll back by restoring the old path strings.
 3. **Apply water.** Point `water_texture` at `res://assets/textures/library/water/water_deep.png` (or `water_shallow.png`), then run `$GODOT --headless --path . --import`. `water_deep` is the better fit; its dark ripples are a bit prominent if it looks busy.
 4. **Tell the 3D Modeller session** about the `bt_kit.py` palette edit, so it keeps it.
-5. **Phase 2 textures (9, not started):** wood: `boardwalk_planks`, `bridge_planks`, `fence_wood`; masonry: `stone_wall`, `brick`, `concrete`; roofing and siding: `roof_shingle`, `siding_white`, `metal_green`. Add `families/wood.py`, `masonry.py`, `roofing.py`, follow the contract in PIPELINE.md, write a `_previews/p2.png` contact sheet.
-6. **Phase 3 textures (7, not started):** alpha decals `divot`, `ball_mark`, `tire_tracks`, `mow_stripe`, `tee_box_edge`; alpha foliage cards `leaf_cluster_green`, `leaf_cluster_autumn`. These need RGBA output, so `tex_kit.save_texture`, `validate.py` (seam check on RGB, alpha rules) and the manifest (`"alpha": true`) need a small extension. Decals and cards are not tileable, so the seam check must be skipped for them.
+5. **Phase 2 textures (9, rebuilt):** wood: `boardwalk_planks`, `bridge_planks`, `fence_wood`; masonry: `stone_wall`, `brick`, `concrete`; roofing and siding: `roof_shingle`, `siding_white`, `metal_green`. See `_previews/p2.png`.
+6. **Phase 3 textures (7, rebuilt):** alpha decals `divot`, `ball_mark`, `tire_tracks`, `mow_stripe`, `tee_box_edge`; alpha foliage cards `leaf_cluster_green`, `leaf_cluster_autumn`. These are non-tileable RGBA images. See `_previews/p3.png`.
 7. **Optional P1 polish:**
    - `cobble`: still on a fairly regular grid; shading is subtle.
    - `rock_grey`: facets are busy at tile scale.

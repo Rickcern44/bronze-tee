@@ -15,25 +15,31 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
-from families import bark, cover, ground, rock, sand, turf, water  # noqa: E402
+from families import bark, cover, ground, rock, sand, turf, water, wood, masonry, roofing, decals, foliage  # noqa: E402
 from tex_kit import contact_sheet  # noqa: E402
 
 ROOT = HERE.parents[1]
 LIB = ROOT / "assets" / "textures" / "library"
 P0_FAMILIES = (turf, sand, ground)
 P1_FAMILIES = (water, cover, rock, bark)
-FAMILIES = P0_FAMILIES + P1_FAMILIES
-CATEGORIES = ("turf", "sand", "ground", "water", "cover", "rock", "bark")
+P2_FAMILIES = (wood, masonry, roofing)
+P3_FAMILIES = (decals, foliage)
+FAMILIES = P0_FAMILIES + P1_FAMILIES + P2_FAMILIES + P3_FAMILIES
+CATEGORIES = ("turf", "sand", "ground", "water", "cover", "rock", "bark", "wood", "masonry", "roofing", "decals", "foliage")
 
 
 def main():
     LIB.mkdir(parents=True, exist_ok=True)
-    p0, p1 = [], []
+    p0, p1, p2, p3 = [], [], [], []
     for family in P0_FAMILIES:
         p0.extend(family.build(LIB))
     for family in P1_FAMILIES:
         p1.extend(family.build(LIB))
-    entries = sorted(p0 + p1, key=lambda e: e["id"])
+    for family in P2_FAMILIES:
+        p2.extend(family.build(LIB))
+    for family in P3_FAMILIES:
+        p3.extend(family.build(LIB))
+    entries = sorted(p0 + p1 + p2 + p3, key=lambda e: e["id"])
 
     ids = [e["id"] for e in entries]
     duplicates = sorted({i for i in ids if ids.count(i) > 1})
@@ -55,6 +61,8 @@ def main():
     (previews / ".gdignore").touch(exist_ok=True)
     contact_sheet(sorted(p0, key=lambda e: e["id"]), LIB, previews / "p0.png")
     contact_sheet(sorted(p1, key=lambda e: e["id"]), LIB, previews / "p1.png")
+    contact_sheet(sorted(p2, key=lambda e: e["id"]), LIB, previews / "p2.png")
+    contact_sheet(sorted(p3, key=lambda e: e["id"]), LIB, previews / "p3.png")
 
     for e in entries:
         print("built %s/%s.png %s" % (e["category"], e["id"], e["avg_color"]))

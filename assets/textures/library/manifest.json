@@ -2,6 +2,20 @@
   "version": 1,
   "assets": [
     {
+      "id": "ball_mark",
+      "category": "decals",
+      "file": "res://assets/textures/library/decals/ball_mark.png",
+      "size": [
+        512,
+        512
+      ],
+      "tileable": false,
+      "avg_color": "#070804",
+      "seed": 188104307794815,
+      "use": "Transparent ball mark decal.",
+      "alpha": true
+    },
+    {
       "id": "bark_birch",
       "category": "bark",
       "file": "res://assets/textures/library/bark/bark_birch.png",
@@ -39,6 +53,45 @@
       "avg_color": "#783D29",
       "seed": 42104274804137,
       "use": "Pine bark: broad flaky reddish-brown plates with darker gaps."
+    },
+    {
+      "id": "boardwalk_planks",
+      "category": "wood",
+      "file": "res://assets/textures/library/wood/boardwalk_planks.png",
+      "size": [
+        512,
+        512
+      ],
+      "tileable": true,
+      "avg_color": "#80593A",
+      "seed": 16905813151881,
+      "use": "Stylized boardwalk planks."
+    },
+    {
+      "id": "brick",
+      "category": "masonry",
+      "file": "res://assets/textures/library/masonry/brick.png",
+      "size": [
+        512,
+        512
+      ],
+      "tileable": true,
+      "avg_color": "#8C4F3D",
+      "seed": 219225919013313,
+      "use": "Stylized brick."
+    },
+    {
+      "id": "bridge_planks",
+      "category": "wood",
+      "file": "res://assets/textures/library/wood/bridge_planks.png",
+      "size": [
+        512,
+        512
+      ],
+      "tileable": true,
+      "avg_color": "#60442E",
+      "seed": 221672077824241,
+      "use": "Stylized bridge planks."
     },
     {
       "id": "bunker_sand",
@@ -119,6 +172,19 @@
       "use": "Collar between green and fairway: short, fine, directional grain, darker than green."
     },
     {
+      "id": "concrete",
+      "category": "masonry",
+      "file": "res://assets/textures/library/masonry/concrete.png",
+      "size": [
+        512,
+        512
+      ],
+      "tileable": true,
+      "avg_color": "#A09E94",
+      "seed": 280553946107799,
+      "use": "Stylized concrete."
+    },
+    {
       "id": "deep_rough",
       "category": "turf",
       "file": "res://assets/textures/library/turf/deep_rough.png",
@@ -145,6 +211,20 @@
       "use": "Dirt: brown, pebbly; rough edges and off-course ground."
     },
     {
+      "id": "divot",
+      "category": "decals",
+      "file": "res://assets/textures/library/decals/divot.png",
+      "size": [
+        512,
+        512
+      ],
+      "tileable": false,
+      "avg_color": "#100D07",
+      "seed": 46138000585031,
+      "use": "Transparent divot decal.",
+      "alpha": true
+    },
+    {
       "id": "fairway_dark",
       "category": "turf",
       "file": "res://assets/textures/library/turf/fairway_dark.png",
@@ -169,6 +249,19 @@
       "avg_color": "#5C9D45",
       "seed": 88821322232477,
       "use": "Fairway mow stripes, light band (lighter stripe of the mow pattern)."
+    },
+    {
+      "id": "fence_wood",
+      "category": "wood",
+      "file": "res://assets/textures/library/wood/fence_wood.png",
+      "size": [
+        512,
+        512
+      ],
+      "tileable": true,
+      "avg_color": "#92704E",
+      "seed": 131996837146458,
+      "use": "Stylized fence wood."
     },
     {
       "id": "first_cut",
@@ -210,6 +303,34 @@
       "use": "Putting surface: finest, smoothest, brightest turf."
     },
     {
+      "id": "leaf_cluster_autumn",
+      "category": "foliage",
+      "file": "res://assets/textures/library/foliage/leaf_cluster_autumn.png",
+      "size": [
+        512,
+        512
+      ],
+      "tileable": false,
+      "avg_color": "#412B15",
+      "seed": 7503936001100,
+      "use": "Transparent leaf cluster autumn foliage card.",
+      "alpha": true
+    },
+    {
+      "id": "leaf_cluster_green",
+      "category": "foliage",
+      "file": "res://assets/textures/library/foliage/leaf_cluster_green.png",
+      "size": [
+        512,
+        512
+      ],
+      "tileable": false,
+      "avg_color": "#192813",
+      "seed": 180425354574312,
+      "use": "Transparent leaf cluster green foliage card.",
+      "alpha": true
+    },
+    {
       "id": "leaf_litter",
       "category": "cover",
       "file": "res://assets/textures/library/cover/leaf_litter.png",
@@ -223,6 +344,19 @@
       "use": "Leaf litter: overlapping small oval leaves in browns and ochre over dark ground."
     },
     {
+      "id": "metal_green",
+      "category": "roofing",
+      "file": "res://assets/textures/library/roofing/metal_green.png",
+      "size": [
+        512,
+        512
+      ],
+      "tileable": true,
+      "avg_color": "#457453",
+      "seed": 241288585485603,
+      "use": "Stylized metal green."
+    },
+    {
       "id": "moss",
       "category": "cover",
       "file": "res://assets/textures/library/cover/moss.png",
@@ -234,6 +368,20 @@
       "avg_color": "#5E964A",
       "seed": 173805963662466,
       "use": "Moss: soft clumpy mottled green with lighter tips."
+    },
+    {
+      "id": "mow_stripe",
+      "category": "decals",
+      "file": "res://assets/textures/library/decals/mow_stripe.png",
+      "size": [
+        512,
+        512
+      ],
+      "tileable": false,
+      "avg_color": "#475931",
+      "seed": 9088979358594,
+      "use": "Transparent mow stripe decal.",
+      "alpha": true
     },
     {
       "id": "mud",
@@ -288,6 +436,19 @@
       "use": "Rock grey: rough grey stone with soft facets and chips, light and dark variation."
     },
     {
+      "id": "roof_shingle",
+      "category": "roofing",
+      "file": "res://assets/textures/library/roofing/roof_shingle.png",
+      "size": [
+        512,
+        512
+      ],
+      "tileable": true,
+      "avg_color": "#5C564F",
+      "seed": 173306813768846,
+      "use": "Stylized roof shingle."
+    },
+    {
       "id": "second_cut",
       "category": "turf",
       "file": "res://assets/textures/library/turf/second_cut.png",
@@ -299,6 +460,60 @@
       "avg_color": "#417A34",
       "seed": 141599983571693,
       "use": "Second cut (transition to rough): darker, coarser, longer blades than first_cut."
+    },
+    {
+      "id": "siding_white",
+      "category": "roofing",
+      "file": "res://assets/textures/library/roofing/siding_white.png",
+      "size": [
+        512,
+        512
+      ],
+      "tileable": true,
+      "avg_color": "#C6C4B4",
+      "seed": 142293429723312,
+      "use": "Stylized siding white."
+    },
+    {
+      "id": "stone_wall",
+      "category": "masonry",
+      "file": "res://assets/textures/library/masonry/stone_wall.png",
+      "size": [
+        512,
+        512
+      ],
+      "tileable": true,
+      "avg_color": "#817B6D",
+      "seed": 142389182519954,
+      "use": "Stylized stone wall."
+    },
+    {
+      "id": "tee_box_edge",
+      "category": "decals",
+      "file": "res://assets/textures/library/decals/tee_box_edge.png",
+      "size": [
+        512,
+        512
+      ],
+      "tileable": false,
+      "avg_color": "#060804",
+      "seed": 231295403045387,
+      "use": "Transparent tee box edge decal.",
+      "alpha": true
+    },
+    {
+      "id": "tire_tracks",
+      "category": "decals",
+      "file": "res://assets/textures/library/decals/tire_tracks.png",
+      "size": [
+        512,
+        512
+      ],
+      "tileable": false,
+      "avg_color": "#070604",
+      "seed": 130044789786344,
+      "use": "Transparent tire tracks decal.",
+      "alpha": true
     },
     {
       "id": "water_deep",

@@ -1,6 +1,7 @@
 # Procedural texture library
 
-Generates the stylized, seamless 512x512 terrain textures used by the course.
+Generates stylized 512x512 textures for the course. Material textures tile;
+decals and foliage cards use transparency and do not tile.
 Pillow only (numpy is not required). Output is deterministic: each texture seeds
 its own `random.Random` from a hash of its id.
 
@@ -41,6 +42,11 @@ Ids are the file names under `assets/textures/library/<category>/`.
 | P1 | cover | mud, leaf_litter, pine_needles, moss, wildflower_meadow |
 | P1 | rock | rock_grey, cliff_strata, cobble |
 | P1 | bark | bark_oak, bark_pine, bark_birch |
+| P2 | wood | boardwalk_planks, bridge_planks, fence_wood |
+| P2 | masonry | stone_wall, brick, concrete |
+| P2 | roofing | roof_shingle, siding_white, metal_green |
+| P3 | decals | divot, ball_mark, tire_tracks, mow_stripe, tee_box_edge |
+| P3 | foliage | leaf_cluster_green, leaf_cluster_autumn |
 
 Each entry's `use` line in `manifest.json` describes it.
 

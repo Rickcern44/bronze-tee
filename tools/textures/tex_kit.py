@@ -299,23 +299,26 @@ def draw_wave_segments(img, rng, count, length, amp, period, colour_fn, width=1)
                 draw.line(line, fill=colour, width=width)
 
 
-def save_texture(out_dir, category, texture_id, img, use):
+def save_texture(out_dir, category, texture_id, img, use, tileable=True, alpha=False):
     """Write the PNG and return its manifest entry (avg_color is read back from the saved file)."""
     path = Path(out_dir) / category / (texture_id + ".png")
     path.parent.mkdir(parents=True, exist_ok=True)
     img.save(path, format="PNG", optimize=True)
     with Image.open(path) as saved:
         avg = average_hex(saved.convert("RGB"))
-    return {
+    entry = {
         "id": texture_id,
         "category": category,
         "file": "res://assets/textures/library/%s/%s.png" % (category, texture_id),
         "size": [SIZE, SIZE],
-        "tileable": True,
+        "tileable": tileable,
         "avg_color": avg,
         "seed": seed_for(texture_id),
         "use": use,
     }
+    if alpha:
+        entry["alpha"] = True
+    return entry
 
 
 def _font(size):
@@ -341,7 +344,8 @@ def contact_sheet(entries, lib_dir, out_path, thumb=256, cols=5):
         y = pad + (i // cols) * (thumb + label_h + pad)
         path = Path(lib_dir) / entry["category"] / (entry["id"] + ".png")
         with Image.open(path) as tile:
-            sheet.paste(tile.convert("RGB").resize((thumb, thumb), Image.LANCZOS), (x, y))
+            tile = tile.convert("RGBA").resize((thumb, thumb), Image.LANCZOS)
+            sheet.paste(tile, (x, y), tile)
         draw.text((x, y + thumb + 4), entry["id"], fill=(235, 235, 235), font=font)
         draw.text((x, y + thumb + 22), "%s  %s" % (entry["category"], entry["avg_color"]),
                   fill=(160, 160, 160), font=small)

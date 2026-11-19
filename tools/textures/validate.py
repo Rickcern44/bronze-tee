@@ -63,14 +63,23 @@ def check_entry(entry, seen_ids):
     with Image.open(path) as opened:
         if opened.size != (SIZE, SIZE):
             problems.append("image is %dx%d" % opened.size)
-        if opened.mode != "RGB":
-            problems.append("image mode is %s, not RGB" % opened.mode)
+        expected_mode = "RGBA" if entry.get("alpha") is True else "RGB"
+        if opened.mode != expected_mode:
+            problems.append("image mode is %s, not %s" % (opened.mode, expected_mode))
+        if entry.get("alpha") is True and opened.mode == "RGBA":
+            lo, hi = opened.getchannel("A").getextrema()
+            if lo != 0 or hi == 0:
+                problems.append("alpha must contain transparent and visible pixels")
+            if entry.get("tileable") is not False:
+                problems.append("alpha assets must be non-tileable")
         img = opened.convert("RGB")
 
     avg = average_hex(img)
     if avg != entry.get("avg_color"):
         problems.append("avg_color %s does not match file %s" % (entry.get("avg_color"), avg))
 
+    if entry.get("tileable") is False:
+        return problems, "non-tileable  avg %s" % avg
     ratio_lr, ratio_tb = seam_ratios(img.load())
     if ratio_lr > SEAM_LIMIT:
         problems.append("left/right seam ratio %.2f > %.1f" % (ratio_lr, SEAM_LIMIT))

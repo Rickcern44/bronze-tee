@@ -56,7 +56,7 @@ On the server set these first. `pipeline.sh check` tells you what is missing.
 - Add a texture: add a spec to `tools/textures/families/<family>.py` (see `turf.py` for the data style), run `tools/pipeline.sh textures`, look at `_previews/*.png`.
 - `validate.py` checks existence, size, seam match, avg colour and unique ids. Seam ratio must be <= 1.5.
 
-## 5. Library status (26 textures built)
+## 5. Library status (42 textures built)
 
 Applied in game (via `scripts/main.gd` `TERRAIN_TEXTURES`): green, collar, fairway_light, fairway_dark, first_cut, second_cut, deep_rough, cart_path.
 Not applied: water (still `assets/textures/terrain/water.png`), everything else in the library.
@@ -65,8 +65,8 @@ Not applied: water (still `assets/textures/terrain/water.png`), everything else 
 |---|---|---|
 | P0 | turf: fairway_light, fairway_dark, first_cut, second_cut, deep_rough, collar, green, native_fescue; sand: bunker_sand, bunker_sand_raked; ground: dirt, gravel_path, cart_path | built, reviewed |
 | P1 | water_deep, water_shallow, mud, leaf_litter, pine_needles, moss, wildflower_meadow, rock_grey, cliff_strata, cobble, bark_oak, bark_pine, bark_birch | built, fixed once, optional polish (below) |
-| P2 | wood: boardwalk_planks, bridge_planks, fence_wood; masonry: stone_wall, brick, concrete; roofing and siding: roof_shingle, siding_white, metal_green | not started |
-| P3 | decals (alpha PNG): divot, ball_mark, tire_tracks, mow_stripe, tee_box_edge; foliage cards (alpha): leaf_cluster_green, leaf_cluster_autumn | not started |
+| P2 | wood: boardwalk_planks, bridge_planks, fence_wood; masonry: stone_wall, brick, concrete; roofing and siding: roof_shingle, siding_white, metal_green | rebuilt, not applied |
+| P3 | decals (alpha PNG): divot, ball_mark, tire_tracks, mow_stripe, tee_box_edge; foliage cards (alpha): leaf_cluster_green, leaf_cluster_autumn | rebuilt, not applied; non-tileable RGBA |
 
 ### P1 status
 The first round of P1 fixes is done (mud, cobble, rock_grey, both water textures, bark_pine, wildflower_meadow). Remaining polish, optional:
