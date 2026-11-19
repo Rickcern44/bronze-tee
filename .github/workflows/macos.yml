@@ -24,8 +24,8 @@ jobs:
         with:
           path: |
             ~/godot-ci
-            ~/.local/share/godot/export_templates/4.7.2.stable
-          key: godot-4.7.2-mono-linux-v1
+            ~/.local/share/godot/export_templates/4.7.2.stable.mono
+          key: godot-4.7.2-mono-linux-v2
       - name: Install Godot and export templates
         if: steps.godot-cache.outputs.cache-hit != 'true'
         shell: bash
@@ -38,9 +38,9 @@ jobs:
           unzip -q "$RUNNER_TEMP/godot.zip" -d "$HOME/godot-ci"
           curl -fL --retry 3 "$base/Godot_v4.7.2-stable_mono_export_templates.tpz" -o "$RUNNER_TEMP/templates.tpz"
           echo '92f8681e349ef1f90891b792da95e3b2b0bd1ed610b78018c58feb2d87e15a9d  '"$RUNNER_TEMP/templates.tpz" | shasum -a 256 -c -
-          mkdir -p "$RUNNER_TEMP/godot-templates" "$HOME/.local/share/godot/export_templates/4.7.2.stable"
+          mkdir -p "$RUNNER_TEMP/godot-templates" "$HOME/.local/share/godot/export_templates/4.7.2.stable.mono"
           unzip -q "$RUNNER_TEMP/templates.tpz" -d "$RUNNER_TEMP/godot-templates"
-          cp -R "$RUNNER_TEMP/godot-templates/templates/." "$HOME/.local/share/godot/export_templates/4.7.2.stable/"
+          cp -R "$RUNNER_TEMP/godot-templates/templates/." "$HOME/.local/share/godot/export_templates/4.7.2.stable.mono/"
       - name: Prepare build tools
         shell: bash
         run: |

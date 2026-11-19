@@ -27,6 +27,7 @@ project/assembly_name="BronzeTee.Godot"
 
 [rendering]
 
+textures/vram_compression/import_etc2_astc=true
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
 environment/defaults/default_clear_color=Color(0.48, 0.7, 0.86, 1)
