@@ -12,6 +12,10 @@ signed and is not notarized, so macOS can ask you to approve it in Privacy &
 Security. Pull requests run the same checks and provide a temporary Actions
 artifact, but do not publish a release. A failed check does not publish a build.
 
+To install the newest test build on a Mac, quit the game and run
+`tools/utils/update-macos.sh`. The script checks the download checksum and app
+signature before it replaces `/Applications/Bronze Tee.app`. It requires Python 3.
+
 The workflow uses Godot 4.7.2 .NET and .NET 10. Update the workflow, export
 templates, SDK version, and download checksums together when upgrading Godot.
 
