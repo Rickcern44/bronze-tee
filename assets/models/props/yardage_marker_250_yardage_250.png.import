@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://33x6qnnsw77j"
 path.s3tc="res://.godot/imported/yardage_marker_250_yardage_250.png-ee4ab95657290699081660e2c544ec88.s3tc.ctex"
+path.etc2="res://.godot/imported/yardage_marker_250_yardage_250.png-ee4ab95657290699081660e2c544ec88.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/props/yardage_marker_250_yardage_250.png"
-dest_files=["res://.godot/imported/yardage_marker_250_yardage_250.png-ee4ab95657290699081660e2c544ec88.s3tc.ctex"]
+dest_files=["res://.godot/imported/yardage_marker_250_yardage_250.png-ee4ab95657290699081660e2c544ec88.s3tc.ctex", "res://.godot/imported/yardage_marker_250_yardage_250.png-ee4ab95657290699081660e2c544ec88.etc2.ctex"]
 
 [params]
 

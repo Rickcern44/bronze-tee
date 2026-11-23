@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://b6v6vbutp7ihl"
 path.s3tc="res://.godot/imported/rock_small_b__albedo.png-2f7dc15410df17c5f7b0b0b62e1673fd.s3tc.ctex"
+path.etc2="res://.godot/imported/rock_small_b__albedo.png-2f7dc15410df17c5f7b0b0b62e1673fd.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/nature/rock_small_b__albedo.png"
-dest_files=["res://.godot/imported/rock_small_b__albedo.png-2f7dc15410df17c5f7b0b0b62e1673fd.s3tc.ctex"]
+dest_files=["res://.godot/imported/rock_small_b__albedo.png-2f7dc15410df17c5f7b0b0b62e1673fd.s3tc.ctex", "res://.godot/imported/rock_small_b__albedo.png-2f7dc15410df17c5f7b0b0b62e1673fd.etc2.ctex"]
 
 [params]
 

@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#244C3F"/>
+      <stop offset="1" stop-color="#0E1A17"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="512" cy="430" r="300" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#D9A066" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#D9A066" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="hillBack" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#496D42"/>
+      <stop offset="1" stop-color="#2C4A2C"/>
+    </linearGradient>
+    <linearGradient id="hill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#83B166"/>
+      <stop offset="1" stop-color="#4E7F45"/>
+    </linearGradient>
+    <linearGradient id="tee" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#8A6A45"/>
+      <stop offset="0.35" stop-color="#E8B274"/>
+      <stop offset="0.6" stop-color="#D9A066"/>
+      <stop offset="1" stop-color="#7A5A38"/>
+    </linearGradient>
+    <radialGradient id="ball" cx="470" cy="400" r="180" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="0.55" stop-color="#F4F1E6"/>
+      <stop offset="1" stop-color="#AFBDB3"/>
+    </radialGradient>
+    <clipPath id="tile"><rect x="100" y="100" width="824" height="824" rx="185"/></clipPath>
+    <clipPath id="ballClip"><circle cx="512" cy="452" r="118"/></clipPath>
+    <filter id="drop" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="14" stdDeviation="16" flood-color="#000" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#drop)">
+    <rect x="100" y="100" width="824" height="824" rx="185" fill="url(#sky)"/>
+  </g>
+
+  <g clip-path="url(#tile)">
+    <circle cx="512" cy="430" r="300" fill="url(#glow)"/>
+    <circle cx="512" cy="452" r="196" fill="none" stroke="#D9A066" stroke-opacity="0.35" stroke-width="6"/>
+
+    <!-- Far hill with the flag. -->
+    <path d="M100 700 C 300 640, 520 600, 924 640 L924 924 L100 924 Z" fill="url(#hillBack)"/>
+    <line x1="770" y1="636" x2="770" y2="500" stroke="#F4F1E6" stroke-width="7" stroke-linecap="round"/>
+    <path d="M773 503 L842 526 L773 552 Z" fill="#F0562E"/>
+    <ellipse cx="770" cy="637" rx="18" ry="5" fill="#12300F" opacity="0.6"/>
+
+    <!-- Near fairway. -->
+    <path d="M100 790 C 330 700, 640 700, 924 770 L924 924 L100 924 Z" fill="url(#hill)"/>
+    <path d="M100 840 C 360 760, 640 770, 924 830" fill="none" stroke="#A4C979" stroke-opacity="0.45" stroke-width="22"/>
+
+    <!-- Tee shadow on the turf. -->
+    <ellipse cx="524" cy="742" rx="52" ry="9" fill="#12300F" opacity="0.45"/>
+
+    <!-- Bronze tee: cup, neck and stem pushed into the turf. -->
+    <path d="M436 566 Q512 600 588 566 L578 590 Q556 616 534 622 L528 744 L496 744 L490 622 Q468 616 446 590 Z" fill="url(#tee)"/>
+    <ellipse cx="512" cy="566" rx="76" ry="13" fill="#E8B274"/>
+  </g>
+
+  <!-- Ball resting in the cup. -->
+  <circle cx="512" cy="452" r="118" fill="url(#ball)"/>
+  <g clip-path="url(#ballClip)" fill="#AFBDB3" opacity="0.55"><ellipse cx="512.0" cy="348.0" rx="6.0" ry="5.1"/><ellipse cx="467.0" cy="374.0" rx="6.8" ry="6.1"/><ellipse cx="497.0" cy="374.0" rx="7.3" ry="6.7"/><ellipse cx="527.0" cy="374.0" rx="7.3" ry="6.7"/><ellipse cx="557.0" cy="374.0" rx="6.8" ry="6.1"/><ellipse cx="422.0" cy="400.0" rx="6.0" ry="5.1"/><ellipse cx="452.0" cy="400.0" rx="7.3" ry="6.7"/><ellipse cx="482.0" cy="400.0" rx="7.8" ry="7.5"/><ellipse cx="512.0" cy="400.0" rx="8.0" ry="7.8"/><ellipse cx="542.0" cy="400.0" rx="7.8" ry="7.5"/><ellipse cx="572.0" cy="400.0" rx="7.3" ry="6.7"/><ellipse cx="602.0" cy="400.0" rx="6.0" ry="5.1"/><ellipse cx="437.0" cy="426.0" rx="7.3" ry="6.7"/><ellipse cx="467.0" cy="426.0" rx="8.0" ry="7.8"/><ellipse cx="497.0" cy="426.0" rx="8.3" ry="8.3"/><ellipse cx="527.0" cy="426.0" rx="8.3" ry="8.3"/><ellipse cx="557.0" cy="426.0" rx="8.0" ry="7.8"/><ellipse cx="587.0" cy="426.0" rx="7.3" ry="6.7"/><ellipse cx="422.0" cy="452.0" rx="6.8" ry="6.1"/><ellipse cx="452.0" cy="452.0" rx="7.9" ry="7.5"/><ellipse cx="482.0" cy="452.0" rx="8.3" ry="8.3"/><ellipse cx="512.0" cy="452.0" rx="8.5" ry="8.5"/><ellipse cx="542.0" cy="452.0" rx="8.3" ry="8.3"/><ellipse cx="572.0" cy="452.0" rx="7.9" ry="7.5"/><ellipse cx="602.0" cy="452.0" rx="6.8" ry="6.1"/><ellipse cx="437.0" cy="478.0" rx="7.3" ry="6.7"/><ellipse cx="467.0" cy="478.0" rx="8.0" ry="7.8"/><ellipse cx="497.0" cy="478.0" rx="8.3" ry="8.3"/><ellipse cx="527.0" cy="478.0" rx="8.3" ry="8.3"/><ellipse cx="557.0" cy="478.0" rx="8.0" ry="7.8"/><ellipse cx="587.0" cy="478.0" rx="7.3" ry="6.7"/><ellipse cx="422.0" cy="504.0" rx="6.0" ry="5.1"/><ellipse cx="452.0" cy="504.0" rx="7.3" ry="6.7"/><ellipse cx="482.0" cy="504.0" rx="7.8" ry="7.5"/><ellipse cx="512.0" cy="504.0" rx="8.0" ry="7.8"/><ellipse cx="542.0" cy="504.0" rx="7.8" ry="7.5"/><ellipse cx="572.0" cy="504.0" rx="7.3" ry="6.7"/><ellipse cx="602.0" cy="504.0" rx="6.0" ry="5.1"/><ellipse cx="467.0" cy="530.0" rx="6.8" ry="6.1"/><ellipse cx="497.0" cy="530.0" rx="7.3" ry="6.7"/><ellipse cx="527.0" cy="530.0" rx="7.3" ry="6.7"/><ellipse cx="557.0" cy="530.0" rx="6.8" ry="6.1"/><ellipse cx="512.0" cy="556.0" rx="6.0" ry="5.1"/></g>
+  <circle cx="512" cy="452" r="118" fill="none" stroke="#C9D3CB" stroke-width="3"/>
+  <ellipse cx="468" cy="392" rx="34" ry="22" fill="#FFFFFF" opacity="0.7" transform="rotate(-30 468 392)"/>
+
+  <!-- Bronze inner border, matching the HUD panels. -->
+  <rect x="112" y="112" width="800" height="800" rx="174" fill="none" stroke="#D9A066" stroke-opacity="0.45" stroke-width="6"/>
+</svg>

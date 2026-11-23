@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://cxdd8q018ojnt"
 path.s3tc="res://.godot/imported/tree_poplar_b_palette_default.png-b56c4ecb381d505cc3fc847ffef3a45e.s3tc.ctex"
+path.etc2="res://.godot/imported/tree_poplar_b_palette_default.png-b56c4ecb381d505cc3fc847ffef3a45e.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/trees/tree_poplar_b_palette_default.png"
-dest_files=["res://.godot/imported/tree_poplar_b_palette_default.png-b56c4ecb381d505cc3fc847ffef3a45e.s3tc.ctex"]
+dest_files=["res://.godot/imported/tree_poplar_b_palette_default.png-b56c4ecb381d505cc3fc847ffef3a45e.s3tc.ctex", "res://.godot/imported/tree_poplar_b_palette_default.png-b56c4ecb381d505cc3fc847ffef3a45e.etc2.ctex"]
 
 [params]
 

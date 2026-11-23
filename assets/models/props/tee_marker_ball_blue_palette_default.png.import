@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://dpag2yra6gxu5"
 path.s3tc="res://.godot/imported/tee_marker_ball_blue_palette_default.png-102056237670f34fca5cba2bc6eefb90.s3tc.ctex"
+path.etc2="res://.godot/imported/tee_marker_ball_blue_palette_default.png-102056237670f34fca5cba2bc6eefb90.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/props/tee_marker_ball_blue_palette_default.png"
-dest_files=["res://.godot/imported/tee_marker_ball_blue_palette_default.png-102056237670f34fca5cba2bc6eefb90.s3tc.ctex"]
+dest_files=["res://.godot/imported/tee_marker_ball_blue_palette_default.png-102056237670f34fca5cba2bc6eefb90.s3tc.ctex", "res://.godot/imported/tee_marker_ball_blue_palette_default.png-102056237670f34fca5cba2bc6eefb90.etc2.ctex"]
 
 [params]
 
