@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="CourseDefinition" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/course/course_definition.gd" id="1_course"]
+[ext_resource type="Resource" path="res://tests/fixtures/eighteen_hole_simple.tres" id="2_hole"]
+
+[resource]
+script = ExtResource("1_course")
+display_name = "Eighteen Hole Fixture"
+holes = Array[Resource]([ExtResource("2_hole"), ExtResource("2_hole"), ExtResource("2_hole"), ExtResource("2_hole"), ExtResource("2_hole"), ExtResource("2_hole"), ExtResource("2_hole"), ExtResource("2_hole"), ExtResource("2_hole"), ExtResource("2_hole"), ExtResource("2_hole"), ExtResource("2_hole"), ExtResource("2_hole"), ExtResource("2_hole"), ExtResource("2_hole"), ExtResource("2_hole"), ExtResource("2_hole"), ExtResource("2_hole")])

@@ -1,6 +1,7 @@
 extends Node3D
 
 var elevation_samples := PackedFloat32Array()
+var _elevation_grid_cache: Dictionary = {}
 const TEE_NAMES = ["WHITE", "BLUE", "BLACK"]
 var tee_index := 0
 var imported_green_height := 0.0
@@ -195,14 +196,19 @@ func _box(pos: Vector3, size: Vector3, color: Color) -> MeshInstance3D:
 func _configure_hole(index: int) -> void:
 	hole_index = index
 	active_hole = HOLES[index]
-	elevation_samples.clear()
+	# Replace the active array; clearing it would also empty its cached value.
+	elevation_samples = PackedFloat32Array()
 	if not active_hole.elevation_file.is_empty():
-		var data := FileAccess.get_file_as_bytes(active_hole.elevation_file)
 		var count: int = active_hole.elevation_dimensions.x * active_hole.elevation_dimensions.y
-		assert(active_hole.elevation_spacing > 0.0 and active_hole.elevation_dimensions.x >= 2 and active_hole.elevation_dimensions.y >= 2 and data.size() == count * 4, "Invalid elevation grid")
-		elevation_samples.resize(count)
-		for i in range(count):
-			elevation_samples[i] = data.decode_float(i * 4)
+		if _elevation_grid_cache.has(active_hole.elevation_file):
+			elevation_samples = _elevation_grid_cache[active_hole.elevation_file]
+		else:
+			var data := FileAccess.get_file_as_bytes(active_hole.elevation_file)
+			assert(active_hole.elevation_spacing > 0.0 and active_hole.elevation_dimensions.x >= 2 and active_hole.elevation_dimensions.y >= 2 and data.size() == count * 4, "Invalid elevation grid")
+			elevation_samples.resize(count)
+			for i in range(count):
+				elevation_samples[i] = data.decode_float(i * 4)
+			_elevation_grid_cache[active_hole.elevation_file] = elevation_samples
 	FIRST_CUT_WIDTH = active_hole.first_cut_width
 	SECOND_CUT_WIDTH = active_hole.second_cut_width
 	GREEN_RADII = active_hole.green_radii

@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="HoleDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/course/hole_definition.gd" id="1_hole"]
+
+[resource]
+script = ExtResource("1_hole")
+number = 1
+display_name = "Fixture Hole"
+par = 4
+yards = 90.0
+tee_position = Vector2(0, 0)
+cup_position = Vector2(0, -82.296)
+tree_count = 0
