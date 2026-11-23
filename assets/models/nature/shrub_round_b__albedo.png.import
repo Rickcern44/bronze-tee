@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://bmnlrjca344jc"
 path.s3tc="res://.godot/imported/shrub_round_b__albedo.png-f19393193bd5e13598cb98993af9c657.s3tc.ctex"
+path.etc2="res://.godot/imported/shrub_round_b__albedo.png-f19393193bd5e13598cb98993af9c657.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/nature/shrub_round_b__albedo.png"
-dest_files=["res://.godot/imported/shrub_round_b__albedo.png-f19393193bd5e13598cb98993af9c657.s3tc.ctex"]
+dest_files=["res://.godot/imported/shrub_round_b__albedo.png-f19393193bd5e13598cb98993af9c657.s3tc.ctex", "res://.godot/imported/shrub_round_b__albedo.png-f19393193bd5e13598cb98993af9c657.etc2.ctex"]
 
 [params]
 

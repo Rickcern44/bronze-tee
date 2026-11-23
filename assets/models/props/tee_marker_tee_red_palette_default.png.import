@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://bvrqkjqubeles"
 path.s3tc="res://.godot/imported/tee_marker_tee_red_palette_default.png-40e883b9edcc5d570f2c71fb152b3eda.s3tc.ctex"
+path.etc2="res://.godot/imported/tee_marker_tee_red_palette_default.png-40e883b9edcc5d570f2c71fb152b3eda.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/props/tee_marker_tee_red_palette_default.png"
-dest_files=["res://.godot/imported/tee_marker_tee_red_palette_default.png-40e883b9edcc5d570f2c71fb152b3eda.s3tc.ctex"]
+dest_files=["res://.godot/imported/tee_marker_tee_red_palette_default.png-40e883b9edcc5d570f2c71fb152b3eda.s3tc.ctex", "res://.godot/imported/tee_marker_tee_red_palette_default.png-40e883b9edcc5d570f2c71fb152b3eda.etc2.ctex"]
 
 [params]
 
