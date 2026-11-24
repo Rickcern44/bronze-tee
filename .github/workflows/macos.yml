@@ -3,6 +3,8 @@ name: Mac test build
 on:
   push:
     branches: [main]
+    # Release tags (vX.Y.Z) build, sign and publish a GitHub Release.
+    tags: ['v*']
   pull_request:
   workflow_dispatch:
 
@@ -13,8 +15,15 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    outputs:
+      semver: ${{ steps.version.outputs.SemVer }}
+      full-semver: ${{ steps.version.outputs.FullSemVer }}
+      display: ${{ steps.version.outputs.DisplayVersion }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          # GitVersion needs the full history and tags.
+          fetch-depth: 0
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
@@ -55,10 +64,19 @@ jobs:
           mkdir -p "$RUNNER_TEMP/bin"
           ln -s "$godot_bin" "$RUNNER_TEMP/bin/godot"
           echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+      - name: Restore dotnet tools
+        run: dotnet tool restore
       - name: Restore test dependencies
         run: dotnet restore dotnet/BronzeTee.Physics.Tests/BronzeTee.Physics.Tests.csproj
       - name: Run project checks
         run: ./tools/check.sh
+      - name: Stamp version
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          tools/version.sh
+          tools/version.sh --stamp
       - name: Export Mac app
         shell: bash
         run: |
@@ -74,7 +92,7 @@ jobs:
           grep -q 'Bronze Tee.app/Contents/MacOS/' "$RUNNER_TEMP/archive-list.txt"
       - uses: actions/upload-artifact@v4
         with:
-          name: Bronze-Tee-unsigned
+          name: Bronze-Tee-${{ steps.version.outputs.SemVer }}-unsigned
           path: build/Bronze-Tee-macOS.zip
           if-no-files-found: error
           retention-days: 14
@@ -86,7 +104,7 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: Bronze-Tee-unsigned
+          name: Bronze-Tee-${{ needs.build.outputs.semver }}-unsigned
           path: dist
       - name: Sign and test the Mac app
         shell: bash
@@ -106,21 +124,21 @@ jobs:
           ditto -c -k --sequesterRsrc --keepParent "$app" dist/Bronze-Tee-macOS.zip
       - uses: actions/upload-artifact@v4
         with:
-          name: Bronze-Tee-macOS
+          name: Bronze-Tee-${{ needs.build.outputs.semver }}-macOS
           path: dist/Bronze-Tee-macOS.zip
           if-no-files-found: error
           retention-days: 14
 
   release:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: sign-and-test
+    needs: [build, sign-and-test]
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: Bronze-Tee-macOS
+          name: Bronze-Tee-${{ needs.build.outputs.semver }}-macOS
           path: dist
       - name: Publish test release
         env:
@@ -129,8 +147,66 @@ jobs:
           COMMIT: ${{ github.sha }}
           RUN_ID: ${{ github.run_id }}
           RUN_ATTEMPT: ${{ github.run_attempt }}
+          SEMVER: ${{ needs.build.outputs.semver }}
+          DISPLAY_VERSION: ${{ needs.build.outputs.display }}
         run: |
+          set -euo pipefail
           tag="test-${RUN_ID}-${RUN_ATTEMPT}"
+          # The asset keeps its fixed name; tools/utils/update-macos.sh looks it up.
           gh release create "$tag" dist/Bronze-Tee-macOS.zip \
-            --target "$COMMIT" --prerelease --title "Mac test build $RUN_ID" \
-            --notes "Test build for commit $COMMIT. This Apple silicon app is ad-hoc signed and is not notarized."
+            --target "$COMMIT" --prerelease --title "Bronze Tee ${SEMVER} (Mac test build)" \
+            --notes "Mac test build of Bronze Tee ${DISPLAY_VERSION} (commit $COMMIT, run $RUN_ID). This Apple silicon app is ad-hoc signed and is not notarized."
+
+  publish-release:
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    needs: [build, sign-and-test]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check tag matches computed version
+        env:
+          TAG: ${{ github.ref_name }}
+          SEMVER: ${{ needs.build.outputs.semver }}
+        run: |
+          if [ "${TAG#v}" != "$SEMVER" ]; then
+            echo "Tag $TAG does not match the GitVersion result $SEMVER." >&2
+            exit 1
+          fi
+      - name: Install git-cliff 2.14.2
+        shell: bash
+        run: |
+          set -euo pipefail
+          f=git-cliff-2.14.2-x86_64-unknown-linux-gnu.tar.gz
+          curl -fL --retry 3 "https://github.com/orhun/git-cliff/releases/download/v2.14.2/$f" -o "$RUNNER_TEMP/$f"
+          echo "24f397c733add5390fdceee3a2088588ab0d5f944ce00d34cb7029b888cf2db4  $RUNNER_TEMP/$f" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/$f" -C "$RUNNER_TEMP"
+          mkdir -p "$RUNNER_TEMP/bin"
+          mv "$RUNNER_TEMP/git-cliff-2.14.2/git-cliff" "$RUNNER_TEMP/bin/git-cliff"
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+      - name: Release notes from the changelog
+        shell: bash
+        run: |
+          set -euo pipefail
+          git cliff --version
+          git cliff --current --strip all -o "$RUNNER_TEMP/notes.md"
+          printf '\nThis Apple silicon app is ad-hoc signed and is not notarized.\n' >> "$RUNNER_TEMP/notes.md"
+          cat "$RUNNER_TEMP/notes.md"
+      - uses: actions/download-artifact@v4
+        with:
+          name: Bronze-Tee-${{ needs.build.outputs.semver }}-macOS
+          path: dist
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          # The asset keeps its fixed name; tools/utils/update-macos.sh looks it up.
+          gh release create "$TAG" dist/Bronze-Tee-macOS.zip \
+            --verify-tag --prerelease --title "Bronze Tee ${TAG}" \
+            --notes-file "$RUNNER_TEMP/notes.md"

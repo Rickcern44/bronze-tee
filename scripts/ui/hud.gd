@@ -17,6 +17,7 @@ var ball_panel: BallPanel
 var swing_meter: SwingMeter
 var aim_hints: KeyHintStrip
 var system_hints: KeyHintStrip
+var version_label: VersionLabel
 
 func _init() -> void:
 	theme = HudTheme.build()
@@ -95,6 +96,13 @@ func _build_bottom() -> void:
 	system_hints.offset_bottom = -20
 	add_child(system_hints)
 	system_hints.set_hints([{"keys": ["F3"], "text": "Holes"}, {"keys": ["T"], "text": "Tees"}, {"keys": ["R"], "text": "Restart"}, {"keys": ["ESC"], "text": "Quit"}])
+	version_label = VersionLabel.new()
+	version_label.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
+	version_label.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	version_label.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	version_label.offset_right = -22
+	version_label.offset_bottom = -3
+	add_child(version_label)
 
 ## Push a full snapshot of game state to every component.
 func apply_state(new_state: HudState) -> void:
