@@ -33,8 +33,13 @@ extends SceneTree
 # Tolerances (display values 0..1, per channel)
 # ---------------------------------------------
 # Albedo: |sampled - expected| <= 0.004 + 4% of expected. 0.004 is one 8-bit
-# output step (1/255). The 4% covers GPU bilinear sampling (no mipmaps) against
-# CPU nearest-texel sampling; the largest observed error is deep rough red,
+# output step (1/255). The 4% covers GPU filtering against CPU sampling. The
+# terrain textures are imported with mipmaps and sampled with
+# filter_linear_mipmap_anisotropic; in a 16 m window view one pixel covers about
+# 2.8 texels of a 512 px, 4 m tile, so the GPU reads a filtered average from
+# mip level 1-2, while the CPU reads one base-level texel per pixel. Mip levels
+# are box-filtered, so both have the same mean over a window; the difference is
+# sampling noise of the sparse CPU texels. The largest observed error is deep rough red,
 # 0.0067 (4.6%) against a limit of 0.0098. Adjacent palette entries are further
 # apart (fairway light vs first cut differ by about 0.03 in R and G), and
 # every window must also be nearest to its own palette entry. The tolerance
@@ -42,8 +47,11 @@ extends SceneTree
 # Lit: |sampled - fitted| <= 0.008 + 3% of fitted; the largest observed
 # residual is 0.0035.
 # Boundaries: the blend fit uses the albedo tolerance; the fitted mix share
-# may step back by at most 0.05 (MONOTONIC_SLACK); and the green/collar blend
-# must cross 50% within a quarter .srf sample of where _surface_at changes.
+# may step back by at most 0.05 (MONOTONIC_SLACK); the green/collar blend
+# must cross 50% within half a .srf sample (one 0.25 m strip step) of where
+# _surface_at changes; and 0.05 m probes at 1/4 and 3/4 of the way between the
+# last green and first collar sample must fit t within 0.15 of 0.25 and 0.75
+# (what bilinear blending predicts), strictly inside (0.1, 0.9) and increasing.
 
 const OUT_DIR := "playtest-output/surface_map"
 const FIXTURE := "res://tests/fixtures/surface_map_hole.tres"
@@ -457,10 +465,54 @@ func run() -> void:
 			"ok  " if ok else "BAD ", x, fmt(m.sampled), fmt(fit.fit), fit.t, fit.s, surface, "" if ok else " <-- foreign colour or non-monotonic"])
 		prev_t = maxf(prev_t, fit.t)
 		x += 0.25
-	var cross_ok: bool = absf(cross_x - surface_change_x) <= game.active_hole.surface_map_spacing * 0.5 + 0.01
+	var spacing: float = game.active_hole.surface_map_spacing
+	var cross_ok: bool = absf(cross_x - surface_change_x) <= spacing * 0.5 + 0.01
 	ok3 = ok3 and cross_ok
-	step(3, ok3, "green->collar blend stays between the two palette colours (with step shadow), is monotonic, and crosses at x %.2f where _surface_at changes at x %.2f\n%s" % [
-		cross_x, surface_change_x, "\n".join(lines3)])
+	# Sub-sample probes. The 0.25 m strips above cannot tell a bilinear blend
+	# from a hard edge: the only strip between the two colours sits on the
+	# _surface_at switch (the midpoint between .srf samples, since _surface_at
+	# rounds to the nearest sample), where a hard edge also averages to about
+	# 0.5. Between the last green sample x_g and the first collar sample
+	# x_g + spacing, the shader mixes the two palette colours with
+	# fraction.x = (x - x_g) / spacing, so a narrow strip centred at
+	# x_g + f * spacing must fit t = f (the strip mean of a linear ramp is its
+	# centre value). A hard edge at the midpoint gives t = 0 below it and 1 above
+# (checked by patching fraction to step(0.5, ...): probes fit t 0.05 and 1.00).
+# Observed t is 0.33 and 0.85: the fitted t reads about +0.08 high across the
+# whole edge (also at x 11.50 and 11.75), because the CPU collar reference sits
+# slightly bluer than the render (interior collar strips fit at the t = 1 clamp).
+	var origin_x: float = game.active_hole.surface_map_origin.x
+	var x_g := INF
+	var col_i := ceili((9.5 - origin_x) / spacing)
+	while origin_x + col_i * spacing <= 12.75:
+		var sx := origin_x + col_i * spacing
+		if game._surface_at(sx, -92.0) == S.GREEN and game._surface_at(sx + spacing, -92.0) == S.COLLAR:
+			x_g = sx
+			break
+		col_i += 1
+	# Every .srf row the probes touch must have the same green | collar column
+	# pair, so the z blend between rows cannot mix in a third colour.
+	var rows_ok := x_g != INF
+	var row_z := -91.0
+	while rows_ok and row_z >= -93.0 - spacing:
+		rows_ok = game._surface_at(x_g, row_z) == S.GREEN and game._surface_at(x_g + spacing, row_z) == S.COLLAR
+		row_z -= spacing
+	var probe_ok := rows_ok
+	var probe_lines := []
+	var probe_t := []
+	for f in [0.25, 0.75]:
+		var px: float = x_g + f * spacing
+		var m := measure(img3, strip(px, 0.05, -91.0, -93.0), [S.GREEN, S.COLLAR], 1)
+		var fit := blend_fit(m.sampled, m.refs[0], m.refs[1])
+		var ok: bool = fit.ok and fit.t > 0.1 and fit.t < 0.9 and absf(fit.t - f) <= 0.15 and m.count > 50
+		probe_ok = probe_ok and ok
+		probe_t.append(fit.t)
+		probe_lines.append("  %s probe x %.3f (0.05 m, %d px): sampled %s fit %s t %.2f, bilinear predicts %.2f +/- 0.15, must be in (0.1, 0.9)%s" % [
+			"ok  " if ok else "BAD ", px, m.count, fmt(m.sampled), fmt(fit.fit), fit.t, f, "" if ok else " <-- hard edge or wrong blend"])
+	probe_ok = probe_ok and probe_t.size() == 2 and probe_t[0] < probe_t[1]
+	ok3 = ok3 and probe_ok
+	step(3, ok3, "green->collar blend stays between the two palette colours (with step shadow), is monotonic, and crosses at x %.2f where _surface_at changes at x %.2f; sub-sample probes between samples x %.2f | %.2f blend bilinearly (rows consistent: %s, increasing: %s)\n%s\n%s" % [
+		cross_x, surface_change_x, x_g, x_g + spacing, str(rows_ok), str(probe_t.size() == 2 and probe_t[0] < probe_t[1]), "\n".join(lines3), "\n".join(probe_lines)])
 
 	# Step 4: fairway -> first cut edge in the light mow band (x 10 | 10.5).
 	# These textures are nearly parallel in RGB, so only the hull check is
