@@ -1,4 +1,6 @@
+import importlib.util
 import io
+import re
 import tempfile
 import unittest
 from pathlib import Path
@@ -10,6 +12,8 @@ from rasterio.transform import from_origin
 from pyproj import Transformer
 
 from tools.course_import import course_import as ci
+
+ROOT=Path(__file__).resolve().parents[1]
 
 
 class CourseImportTests(unittest.TestCase):
@@ -44,6 +48,55 @@ class CourseImportTests(unittest.TestCase):
             ids=np.asarray(image)[:,:,0]
             self.assertEqual(int(ids[9,12]),4)
             self.assertEqual(int(ids[0,0]),0)
+
+    def test_surface_ids_match_contract_and_game_enum(self):
+        contract={"deep_rough":0,"second_cut":1,"first_cut":2,"fairway":3,"green":4,"collar":5,"tee":6,"path":7,"water":8,"bunker":9}
+        self.assertEqual(ci.SURFACE,contract)
+        source=(ROOT/"scripts/main.gd").read_text()
+        body=re.search(r"^enum Surface \{([^}]*)\}",source,re.M).group(1)
+        game={name.strip().lower():int(value) for name,value in (item.split("=") for item in body.split(","))}
+        self.assertEqual(game,contract)
+
+    def test_surface_map_png_matches_game_reader(self):
+        # Asymmetric map: fairway (3) left, green (4) right, one bunker (9) cell
+        # in row 0 so a flipped row or column order would be caught.
+        surface=np.full((6,120),3,dtype=np.uint8); surface[:,60:]=4; surface[0,0]=9
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp)/"hole.srf"; ci._save_surface(surface,path)
+            data=path.read_bytes()
+        # PNG IHDR: bit depth 8, colour type 4 (greyscale + alpha), as
+        # Image.load_png_from_buffer needs for FORMAT_LA8.
+        self.assertEqual(data[:8],b"\x89PNG\r\n\x1a\n")
+        self.assertEqual(data[12:16],b"IHDR")
+        self.assertEqual((data[24],data[25]),(8,4))
+        image=Image.open(io.BytesIO(data)); self.assertEqual(image.mode,"LA")
+        self.assertEqual(image.size,(120,6)) # width = columns (X), height = rows (-Z)
+        pixels=np.asarray(image)
+        np.testing.assert_array_equal(pixels[:,:,0],surface)
+        distance=pixels[:,:,1]
+        # Boundary is halfway between samples: k samples away is (k - 0.5) * 0.5 m,
+        # stored in 0.1 m units rounded half up and clamped at 255.
+        for col,expected in [(59,3),(58,8),(57,13),(60,3),(62,13),(119,255)]:
+            self.assertEqual(int(distance[3,col]),expected,col)
+        self.assertEqual(int(distance[0,0]),3) # the lone bunker cell
+        self.assertEqual(int(distance[0,1]),3)
+        far=np.full((4,200),0,dtype=np.uint8); far[:,199]=1
+        self.assertEqual(int(ci._surface_bytes(far)[0,0,1]),255)
+        self.assertEqual(ci.SURFACE_SPACING,0.5)
+
+    def test_surface_map_fixture_is_baked_by_importer(self):
+        # tests/surface_map_check.gd reads this fixture through the game, so it
+        # must stay byte-identical to the importer's own encoder output.
+        spec=importlib.util.spec_from_file_location("make_surface_map_fixture",ROOT/"tests/fixtures/make_surface_map_fixture.py")
+        module=importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
+        with tempfile.TemporaryDirectory() as tmp:
+            module.write(Path(tmp))
+            for name in ("surface_map_fixture.srf","surface_map_fixture.f32"):
+                self.assertEqual((Path(tmp)/name).read_bytes(),(ROOT/"tests/fixtures"/name).read_bytes(),name)
+        resource=(ROOT/"tests/fixtures/surface_map_hole.tres").read_text()
+        cols,rows=module.SURFACE_SIZE
+        self.assertIn(f"surface_map_dimensions = Vector2i({cols}, {rows})",resource)
+        self.assertIn("surface_map_origin = Vector2(%g, %g)"%module.ORIGIN,resource)
 
     def test_frame_points_along_negative_local_z(self):
         line=np.array([[10.,20.],[10.,120.]])
@@ -85,6 +138,19 @@ class CourseImportTests(unittest.TestCase):
             second=ci.build(spec,course,cache)
             second_bytes={p.relative_to(course).as_posix():p.read_bytes() for p in course.rglob("*") if p.is_file()}
             self.assertEqual(first_bytes,second_bytes)
+            # The baked .srf matches what the hole resource tells the game.
+            srf=Image.open(io.BytesIO(first_bytes["terrain/hole_01.srf"]))
+            self.assertEqual(srf.mode,"LA")
+            resource=first_bytes["holes/hole_01.tres"].decode()
+            self.assertIn(f"surface_map_dimensions = Vector2i({srf.size[0]}, {srf.size[1]})",resource)
+            self.assertIn("surface_map_origin = Vector2(-70.000, 40.000)",resource)
+            self.assertIn("surface_map_spacing = 0.5\n",resource)
+            ids=np.asarray(srf)[:,:,0]
+            self.assertTrue(set(np.unique(ids).tolist())<=set(ci.SURFACE.values()))
+            # Row 0 is max Z (40 m behind the tee), so the green is in a lower row than the tee.
+            green_rows=np.nonzero(ids==ci.SURFACE["green"])[0]; tee_rows=np.nonzero(ids==ci.SURFACE["tee"])[0]
+            self.assertTrue(len(green_rows) and len(tee_rows))
+            self.assertGreater(green_rows.min(),tee_rows.max())
             self.assertEqual(first["holes"],1)
             self.assertEqual(second["warnings"],[])
 

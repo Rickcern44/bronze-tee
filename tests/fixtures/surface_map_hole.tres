@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="HoleDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/course/hole_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+number = 99
+display_name = "Surface Map Fixture"
+par = 3
+yards = 100.0
+cup_position = Vector2(6, -92)
+green_radii = Vector2(12, 9)
+path_center_x = 29.25
+path_half_width = 1.25
+tree_count = 4
+surface_map_file = "res://tests/fixtures/surface_map_fixture.srf"
+surface_map_origin = Vector2(-40, 20)
+surface_map_spacing = 0.5
+surface_map_dimensions = Vector2i(161, 261)
+elevation_file = "res://tests/fixtures/surface_map_fixture.f32"
+elevation_origin = Vector2(-40, 20)
+elevation_spacing = 2.0
+elevation_dimensions = Vector2i(41, 66)

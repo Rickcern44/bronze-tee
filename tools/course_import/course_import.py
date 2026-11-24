@@ -21,7 +21,11 @@ from rasterio.transform import from_bounds
 
 CACHE = Path.home() / ".cache/bronze-tee/courses"
 OSM_TAGS = {"hole", "tee", "green", "pin", "fairway", "bunker", "water_hazard", "lateral_water_hazard", "cartpath"}
+# .srf channel-0 IDs. The game reads these as enum Surface in scripts/main.gd;
+# tests/test_course_import.py fails if the two tables drift apart.
 SURFACE = {"deep_rough":0,"second_cut":1,"first_cut":2,"fairway":3,"green":4,"collar":5,"tee":6,"path":7,"water":8,"bunker":9}
+SURFACE_SPACING=0.5 # metres between .srf samples
+SURFACE_DISTANCE_UNIT=0.1 # metres per channel-1 step; 255 steps clamp at 25.5 m
 UA = "BronzeTeeCourseImport/1.0 (course data import; contact project maintainers)"
 
 def request(url: str, payload: bytes | None = None) -> bytes:
@@ -200,7 +204,7 @@ def build(spec:dict, course_dir:Path, cache_dir:Path|None=None)->dict:
         reference=float(heights[np.abs(zz).argmin(axis=0)[np.abs(xx[0]).argmin()],np.abs(xx[0]).argmin()])
         heights=(heights-reference).astype("<f4")
         terrain_path=out/"terrain"/f"hole_{num:02d}.f32"; terrain_path.write_bytes(heights.tobytes(order="C"))
-        sxx,szz=np.meshgrid(minx+np.arange(math.ceil((maxx-minx)/0.5)+1)*0.5,maxz-np.arange(math.ceil((maxz-minz)/0.5)+1)*0.5)
+        sxx,szz=np.meshgrid(minx+np.arange(math.ceil((maxx-minx)/SURFACE_SPACING)+1)*SURFACE_SPACING,maxz-np.arange(math.ceil((maxz-minz)/SURFACE_SPACING)+1)*SURFACE_SPACING)
         surface=_raster_surfaces(num,hole,surface_features,line,origin,forward,right,sxx,szz)
         srf_path=out/"terrain"/f"hole_{num:02d}.srf"; _save_surface(surface,srf_path)
         green_poly=next((g for g in greens if len(g)>=3),None)
@@ -227,29 +231,29 @@ def _point_in_poly(p,poly):
     return inside
 
 def _raster_surfaces(num,hole,features,line,origin,forward,right,xx,zz):
-    surface=np.zeros(xx.shape,dtype=np.uint8); xz=_local(line,origin,forward,right)
+    S=SURFACE; deep=S["deep_rough"]
+    surface=np.full(xx.shape,deep,dtype=np.uint8); xz=_local(line,origin,forward,right)
+    feature_ids={"green":S["green"],"fairway":S["fairway"],"tee":S["tee"],"bunker":S["bunker"],"water_hazard":S["water"],"lateral_water_hazard":S["water"],"cartpath":S["path"]}
     # Polygon masks are evaluated in the feature's own frame.
     for typ,pts in features:
-        if typ not in {"green","fairway","tee","bunker","water_hazard","lateral_water_hazard","cartpath"}: continue
+        if typ not in feature_ids: continue
         poly=_local(pts,origin,forward,right)
         if len(poly)<3: continue
         mask=_polygon_mask(xx,zz,poly)
-        sid={"green":4,"fairway":3,"tee":6,"bunker":9,"water_hazard":8,"lateral_water_hazard":8,"cartpath":7}[typ]
+        surface[mask]=feature_ids[typ]
         if typ=="green":
-            surface[mask]=4
-            dilated=distance_transform_edt(~mask)*0.5<=3
-            surface[dilated & ~mask & (surface==0)]=5
-        else: surface[mask]=sid
+            dilated=distance_transform_edt(~mask)*SURFACE_SPACING<=3
+            surface[dilated & ~mask & (surface==deep)]=S["collar"]
     # Generate fairway/cut bands around route where OSM polygon is absent.
     dist=np.full(xx.shape,np.inf)
     for a,b in zip(xz[:-1],xz[1:]):
         vx, vz=b-a; den=vx*vx+vz*vz
         t=np.clip(((xx-a[0])*vx+(zz-a[1])*vz)/max(den,1e-9),0,1)
         dist=np.minimum(dist,np.hypot(xx-(a[0]+t*vx),zz-(a[1]+t*vz)))
-    base=surface==0; surface[base & (dist<16)]=3; surface[(surface==0)&(dist<20)]=2; surface[(surface==0)&(dist<26)]=1
+    base=surface==deep; surface[base & (dist<16)]=S["fairway"]; surface[(surface==deep)&(dist<20)]=S["first_cut"]; surface[(surface==deep)&(dist<26)]=S["second_cut"]
     # First/second cut around explicit fairways.
-    fw=surface==3; near=distance_transform_edt(~fw)*0.5
-    surface[(surface==0)&(near<=3)]=2; surface[(surface==0)&(near<=9)]=1
+    fw=surface==S["fairway"]; near=distance_transform_edt(~fw)*SURFACE_SPACING
+    surface[(surface==deep)&(near<=3)]=S["first_cut"]; surface[(surface==deep)&(near<=9)]=S["second_cut"]
     return surface
 
 def _polygon_mask(x,z,poly):
@@ -260,14 +264,28 @@ def _polygon_mask(x,z,poly):
         m ^= crosses
     return m
 
-def _save_surface(surface,path):
-    # L=surface ID; alpha=distance to nearest changed sample in decimeters.
+def _surface_bytes(surface:np.ndarray)->np.ndarray:
+    """Pack IDs and boundary distances as the (rows, cols, 2) uint8 .srf payload.
+
+    Channel 0 (PNG luminance) is the surface ID. Channel 1 (PNG alpha) is the
+    distance from the sample to the nearest boundary with a different surface,
+    in 0.1 m units clamped at 255. The boundary lies halfway between two
+    differing samples, so a sample next to one is 0.25 m from it.
+    """
+    surface=np.asarray(surface,dtype=np.uint8)
     edge=np.full(surface.shape,np.inf,dtype=float)
     for sid in np.unique(surface):
         mask=surface==sid
         edge[mask]=np.minimum(edge[mask],distance_transform_edt(mask)[mask])
-    alpha=np.clip(np.rint(edge*5),0,255).astype(np.uint8) # 0.5 m pixels => 0.1 m units
-    image=Image.fromarray(np.dstack((surface,alpha)),mode="LA")
+    # Units per sample, rounded so 0.5/0.1 is exactly 5 and halves round up.
+    units=round(SURFACE_SPACING/SURFACE_DISTANCE_UNIT,6)
+    distance=np.clip(np.floor(np.maximum(edge-0.5,0.0)*units+0.5),0,255).astype(np.uint8)
+    return np.dstack((surface,distance))
+
+def _save_surface(surface,path):
+    # Shape (rows, cols, 2) uint8 is written as an 8-bit grayscale+alpha (LA) PNG.
+    image=Image.fromarray(_surface_bytes(surface))
+    if image.mode!="LA": raise ValueError(f"surface map encoded as {image.mode}, expected LA")
     import io
     buf=io.BytesIO(); image.save(buf,format="PNG",optimize=False); path.write_bytes(buf.getvalue())
 
@@ -283,7 +301,7 @@ def _hole_resource(num,hole,line_xz,line,pin,green_center,green_radii,tees,latlo
     text='[gd_resource type="Resource" script_class="HoleDefinition" load_steps=2 format=3]\n\n[ext_resource type="Script" path="res://scripts/course/hole_definition.gd" id="1"]\n\n[resource]\nscript = ExtResource("1")\n'
     course_id=hole["course_id"]
     yardages=hole["yards"] if isinstance(hole["yards"],dict) else {"white":hole["yards"]}
-    attrs={"number":str(num),"display_name":f'"Hole {num}"',"par":str(int(hole["par"])),"yards":str(_yards(hole)),"tee_position":v2(white),"cup_position":v2(pin),"blue_tee_offset":v2(extras[0]-white) if extras else "Vector2.ZERO","black_tee_offset":v2(extras[1]-white) if len(extras)>1 else "Vector2.ZERO","blue_tee_yards":str(float(yardages.get("blue",0))),"black_tee_yards":str(float(yardages.get("black",0))),"green_radii":f"Vector2({green_radii[0]:.3f}, {green_radii[1]:.3f})","fairway_centerline":arr(line_xz),"elevation_file":f'"res://resources/courses/{course_id}/terrain/hole_{num:02d}.f32"',"elevation_origin":"Vector2(-70.000, 40.000)","elevation_spacing":"2.0","elevation_dimensions":f"Vector2i({elevation_dims[0]}, {elevation_dims[1]})","origin_latlon":v2(origin),"bearing_deg":str(math.degrees(math.atan2(line[-1,0]-line[0,0],line[-1,1]-line[0,1]))),"surface_map_file":f'"res://resources/courses/{course_id}/terrain/hole_{num:02d}.srf"',"surface_map_origin":"Vector2(-70.000, 40.000)","surface_map_spacing":"0.5","surface_map_dimensions":f"Vector2i({int(dims[1])}, {int(dims[0])})"}
+    attrs={"number":str(num),"display_name":f'"Hole {num}"',"par":str(int(hole["par"])),"yards":str(_yards(hole)),"tee_position":v2(white),"cup_position":v2(pin),"blue_tee_offset":v2(extras[0]-white) if extras else "Vector2.ZERO","black_tee_offset":v2(extras[1]-white) if len(extras)>1 else "Vector2.ZERO","blue_tee_yards":str(float(yardages.get("blue",0))),"black_tee_yards":str(float(yardages.get("black",0))),"green_radii":f"Vector2({green_radii[0]:.3f}, {green_radii[1]:.3f})","fairway_centerline":arr(line_xz),"elevation_file":f'"res://resources/courses/{course_id}/terrain/hole_{num:02d}.f32"',"elevation_origin":"Vector2(-70.000, 40.000)","elevation_spacing":"2.0","elevation_dimensions":f"Vector2i({elevation_dims[0]}, {elevation_dims[1]})","origin_latlon":v2(origin),"bearing_deg":str(math.degrees(math.atan2(line[-1,0]-line[0,0],line[-1,1]-line[0,1]))),"surface_map_file":f'"res://resources/courses/{course_id}/terrain/hole_{num:02d}.srf"',"surface_map_origin":"Vector2(-70.000, 40.000)","surface_map_spacing":str(SURFACE_SPACING),"surface_map_dimensions":f"Vector2i({int(dims[1])}, {int(dims[0])})"}
     for key,value in attrs.items(): text+=f"{key} = {value}\n"
     return text
 

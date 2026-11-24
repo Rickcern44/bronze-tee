@@ -24,7 +24,8 @@ extends Resource
 @export_group("Fairway")
 @export var fairway_sway: float = 0.8
 @export var fairway_sway_frequency: float = 0.012
-## Optional ordered centerline points (X, Z) for mapped doglegs; maximum four.
+## Optional ordered centerline points (X, Z) for mapped doglegs. Parametric holes
+## allow at most four; holes with a surface map have no limit (aim, path, trees).
 @export var fairway_centerline: Array[Vector2] = []
 ## Smooth lateral shift in meters; negative bends left. Start/end are distances down-hole.
 @export var dogleg_offset: float = 0.0
@@ -43,6 +44,17 @@ extends Resource
 @export var elevation_origin: Vector2 = Vector2.ZERO
 @export var elevation_spacing: float = 2.0
 @export var elevation_dimensions: Vector2i = Vector2i.ZERO
+@export_group("Surface map")
+## Optional baked surface map (.srf): an 8-bit LA PNG read with
+## Image.load_png_from_buffer. Channel 0 is the surface ID (enum Surface in
+## main.gd), channel 1 the distance to the nearest different surface in 0.1 m.
+## Origin is sample (0, 0) at min X / max Z; rows advance toward -Z. When set,
+## it replaces the parametric shapes for lies, hazards and terrain shading.
+@export_file("*.srf") var surface_map_file: String = ""
+@export var surface_map_origin: Vector2 = Vector2.ZERO
+@export var surface_map_spacing: float = 0.5
+@export var surface_map_dimensions: Vector2i = Vector2i.ZERO
+@export_group("Elevation")
 @export var fairway_height: float = 0.75
 @export var fairway_frequency: float = 0.023
 @export var cross_height: float = 0.32

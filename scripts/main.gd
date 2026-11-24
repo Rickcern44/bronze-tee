@@ -2,6 +2,19 @@ extends Node3D
 
 var elevation_samples := PackedFloat32Array()
 var _elevation_grid_cache: Dictionary = {}
+# Baked surface map of the active hole (see _load_surface_map); null on
+# parametric holes. surface_map keeps both .srf channels as FORMAT_LA8 for the
+# shader; surface_ids holds channel 0 only, row-major, for gameplay lookups.
+var surface_map: Image
+var surface_ids := PackedByteArray()
+var surface_texture: ImageTexture
+# Sample indices whose ID is GREEN, and the green height-blend weights over
+# surface_green_rect (sample coordinates); weights are 0 outside the rect.
+var surface_green_cells := PackedInt32Array()
+var surface_green_rect := Rect2i()
+var surface_green_weights := PackedFloat32Array()
+var _surface_map_cache: Dictionary = {}
+const SURFACE_GREEN_BLEND := 2.0 # Meters over which a mapped green's plane fades into the terrain.
 const TEE_NAMES = ["WHITE", "BLUE", "BLACK"]
 var tee_index := 0
 var imported_green_height := 0.0
@@ -63,8 +76,13 @@ var HOLES: Array = []
 var active_hole: Resource
 var hole_index := 0
 var hole_scores: Array[int] = []
-# Terrain surfaces, shared by _surface_at and the terrain shader.
-enum Surface { GREEN, COLLAR, FAIRWAY, FIRST_CUT, SECOND_CUT, DEEP_ROUGH, WATER, PATH, TEE }
+# Terrain surfaces, shared by _surface_at and the terrain shader. The values are
+# the surface IDs stored in channel 0 of a .srf surface map
+# (docs/features/course-import.md), so a mapped ID is used as-is. This enum is
+# the single source of truth: tests/surface_map_check.gd compares it with the
+# SRF_* constants in shaders/terrain.gdshader, and tests/test_course_import.py
+# with SURFACE in tools/course_import. Never renumber an existing value.
+enum Surface { DEEP_ROUGH = 0, SECOND_CUT = 1, FIRST_CUT = 2, FAIRWAY = 3, GREEN = 4, COLLAR = 5, TEE = 6, PATH = 7, WATER = 8, BUNKER = 9 }
 var FIRST_CUT_WIDTH := 3.0
 var SECOND_CUT_WIDTH := 6.0 # Visual only: second cut and deep rough are both "Rough".
 var GREEN_RADII := Vector2(15.5, 14.5)
@@ -206,6 +224,15 @@ func _box(pos: Vector3, size: Vector3, color: Color) -> MeshInstance3D:
 func _configure_hole(index: int) -> void:
 	hole_index = index
 	active_hole = HOLES[index]
+	var surface: Dictionary = {}
+	if not active_hole.surface_map_file.is_empty():
+		surface = _load_surface_map(active_hole.surface_map_file, active_hole.surface_map_dimensions, active_hole.surface_map_spacing)
+	surface_map = surface.get("image")
+	surface_ids = surface.get("ids", PackedByteArray())
+	surface_texture = surface.get("texture")
+	surface_green_cells = surface.get("green_cells", PackedInt32Array())
+	surface_green_rect = surface.get("green_rect", Rect2i())
+	surface_green_weights = surface.get("green_weights", PackedFloat32Array())
 	# Replace the active array; clearing it would also empty its cached value.
 	elevation_samples = PackedFloat32Array()
 	if not active_hole.elevation_file.is_empty():
@@ -215,9 +242,8 @@ func _configure_hole(index: int) -> void:
 		else:
 			var data := FileAccess.get_file_as_bytes(active_hole.elevation_file)
 			assert(active_hole.elevation_spacing > 0.0 and active_hole.elevation_dimensions.x >= 2 and active_hole.elevation_dimensions.y >= 2 and data.size() == count * 4, "Invalid elevation grid")
-			elevation_samples.resize(count)
-			for i in range(count):
-				elevation_samples[i] = data.decode_float(i * 4)
+			# Little-endian float32 grid; one bulk conversion instead of a per-sample loop.
+			elevation_samples = data.to_float32_array()
 			_elevation_grid_cache[active_hole.elevation_file] = elevation_samples
 	FIRST_CUT_WIDTH = active_hole.first_cut_width
 	SECOND_CUT_WIDTH = active_hole.second_cut_width
@@ -241,7 +267,7 @@ func _configure_hole(index: int) -> void:
 	assert(active_hole.fairway_centerline.is_empty() or active_hole.fairway_centerline.size() >= 2, "A mapped fairway needs at least two points")
 	for i in range(active_hole.fairway_centerline.size() - 1):
 		assert(active_hole.fairway_centerline[i].y > active_hole.fairway_centerline[i + 1].y, "Mapped fairway points must progress down the hole")
-	assert(active_hole.water_ellipses.size() <= MAX_WATER_FEATURES, "A hole supports at most four water ellipses")
+	assert(surface_map != null or active_hole.water_ellipses.size() <= MAX_WATER_FEATURES, "A parametric hole supports at most four water ellipses")
 	for hill in active_hole.hills:
 		assert(hill.y > 0.0, "Hill width must be positive")
 	assert(active_hole.green_radii.x > 0 and active_hole.green_radii.y > 0 and active_hole.cup_position.y < 0, "Green radii must be positive and cup Z must be negative")
@@ -250,6 +276,72 @@ func _configure_hole(index: int) -> void:
 		_fit_imported_green()
 	var tee: Vector2 = active_hole.tee_position + _selected_tee_offset()
 	TEE = Vector3(tee.x, _ground_height(tee.x, tee.y) + BALL_RADIUS, tee.y)
+
+# Decodes a .srf surface map once per file and precomputes everything the hot
+# paths need, so lookups never call Image.get_pixel. The .srf is an 8-bit LA
+# PNG: channel 0 (L) is the surface ID and channel 1 (A) the distance to the
+# nearest different surface. Godot decodes it as FORMAT_LA8, which reads back
+# as Color(L, L, L, A) in get_pixel and in shaders, so the distance is in .a;
+# .g only repeats the ID. Gameplay uses channel 0 only.
+func _load_surface_map(path: String, dimensions: Vector2i, spacing: float) -> Dictionary:
+	if _surface_map_cache.has(path): return _surface_map_cache[path]
+	var image := Image.new()
+	var result := image.load_png_from_buffer(FileAccess.get_file_as_bytes(path))
+	assert(result == OK and image.get_format() == Image.FORMAT_LA8, "Surface map must be an 8-bit LA PNG: " + path)
+	assert(image.get_size() == dimensions and spacing > 0.0, "Surface map size or spacing does not match the hole resource")
+	# Dropping alpha from LA8 keeps L exactly, leaving one ID byte per sample.
+	var id_image := image.duplicate() as Image
+	id_image.convert(Image.FORMAT_L8)
+	var ids := id_image.get_data()
+	var width := image.get_width()
+	var height := image.get_height()
+	var green_cells := PackedInt32Array()
+	var lo := Vector2i(width, height)
+	var hi := Vector2i(-1, -1)
+	var index := ids.find(Surface.GREEN)
+	while index != -1:
+		green_cells.append(index)
+		var cell := Vector2i(index % width, index / width)
+		lo = lo.min(cell)
+		hi = hi.max(cell)
+		index = ids.find(Surface.GREEN, index + 1)
+	# Green height weights: 1 on green samples, fading to 0 over
+	# SURFACE_GREEN_BLEND from the nearest green sample. Only edge samples
+	# can be nearest to a point outside the green, so only they are stamped.
+	var green_rect := Rect2i()
+	var weights := PackedFloat32Array()
+	if not green_cells.is_empty():
+		var reach := ceili(SURFACE_GREEN_BLEND / spacing)
+		green_rect = Rect2i(lo, hi - lo + Vector2i.ONE).grow(reach).intersection(Rect2i(0, 0, width, height))
+		weights.resize(green_rect.size.x * green_rect.size.y)
+		var stamp: Array[Vector3] = []
+		for dz in range(-reach, reach + 1):
+			for dx in range(-reach, reach + 1):
+				var weight := 1.0 - smoothstep(0.0, SURFACE_GREEN_BLEND, Vector2(dx, dz).length() * spacing)
+				if weight > 0.0: stamp.append(Vector3(dx, dz, weight))
+		for cell_index in green_cells:
+			var cell := Vector2i(cell_index % width, cell_index / width)
+			var local := cell - green_rect.position
+			weights[local.y * green_rect.size.x + local.x] = 1.0
+			var interior := cell.x > 0 and cell.y > 0 and cell.x < width - 1 and cell.y < height - 1 \
+				and ids[cell_index - 1] == Surface.GREEN and ids[cell_index + 1] == Surface.GREEN \
+				and ids[cell_index - width] == Surface.GREEN and ids[cell_index + width] == Surface.GREEN
+			if interior: continue
+			for offset in stamp:
+				var target := local + Vector2i(int(offset.x), int(offset.y))
+				if target.x < 0 or target.y < 0 or target.x >= green_rect.size.x or target.y >= green_rect.size.y: continue
+				var k := target.y * green_rect.size.x + target.x
+				weights[k] = maxf(weights[k], offset.z)
+	var surface := {
+		"image": image,
+		"ids": ids,
+		"texture": ImageTexture.create_from_image(image),
+		"green_cells": green_cells,
+		"green_rect": green_rect,
+		"green_weights": weights,
+	}
+	_surface_map_cache[path] = surface
+	return surface
 
 func _selected_tee_offset() -> Vector2:
 	if tee_index == 1 and active_hole.blue_tee_yards > 0.0: return active_hole.blue_tee_offset
@@ -427,6 +519,45 @@ func _sample_imported_elevation(x: float, z: float) -> float:
 # Fit a gentle plane to samples over the green. Lidar captures broad elevation,
 # but interpolation and vegetation can give small greens unplayable slopes.
 func _fit_imported_green() -> void:
+	# With a surface map, least-squares fit over every green sample (the green
+	# mask), not over the ellipse described by green_radii.
+	if surface_green_cells.size() > 2:
+		var width := surface_map.get_width()
+		var origin: Vector2 = active_hole.surface_map_origin
+		var spacing: float = active_hole.surface_map_spacing
+		var n := float(surface_green_cells.size())
+		var sx := 0.0
+		var sz := 0.0
+		var sh := 0.0
+		var sxx := 0.0
+		var szz := 0.0
+		var sxz := 0.0
+		var sxh := 0.0
+		var szh := 0.0
+		for cell in surface_green_cells:
+			var x: float = origin.x + (cell % width) * spacing - CUP.x
+			var z: float = origin.y - (cell / width) * spacing - CUP.z
+			var h := _sample_imported_elevation(CUP.x + x, CUP.z + z)
+			sx += x
+			sz += z
+			sh += h
+			sxx += x * x
+			szz += z * z
+			sxz += x * z
+			sxh += x * h
+			szh += z * h
+		var xx := sxx - sx * sx / n
+		var zz := szz - sz * sz / n
+		var xz := sxz - sx * sz / n
+		var xh := sxh - sx * sh / n
+		var zh := szh - sz * sh / n
+		var det := xx * zz - xz * xz
+		if absf(det) > 0.0001:
+			imported_green_slope = Vector2((xh * zz - zh * xz) / det, (zh * xx - xh * xz) / det).limit_length(0.02)
+		else:
+			imported_green_slope = Vector2.ZERO
+		imported_green_height = (sh - imported_green_slope.x * sx - imported_green_slope.y * sz) / n
+		return
 	var sum_h := 0.0
 	var sum_xh := 0.0
 	var sum_zh := 0.0
@@ -450,6 +581,8 @@ func _ground_height(x: float, z: float) -> float:
 		var terrain := _sample_imported_elevation(x, z)
 		var distance := Vector2((x - CUP.x) / GREEN_RADII.x, (z - CUP.z) / GREEN_RADII.y).length()
 		var green_weight: float = 1.0 - smoothstep(1.0, active_hole.green_blend_end, distance)
+		if surface_map != null:
+			green_weight = _mapped_green_weight(x, z)
 		var green := imported_green_height + (x - CUP.x) * imported_green_slope.x + (z - CUP.z) * imported_green_slope.y
 		return lerpf(terrain, green, green_weight)
 	# All holes use the same terrain recipe, with features supplied by their resource.
@@ -460,6 +593,8 @@ func _ground_height(x: float, z: float) -> float:
 		fairway *= smoothstep(active_hole.elevation_fade_start, active_hole.elevation_fade_end, -z)
 	var green_distance := Vector2((x - CUP.x) / GREEN_RADII.x, (z - CUP.z) / GREEN_RADII.y).length()
 	var green_weight: float = 1.0 - smoothstep(1.0, active_hole.green_blend_end, green_distance)
+	if surface_map != null:
+		green_weight = _mapped_green_weight(x, z)
 	var green_base: float = active_hole.green_base_height
 	if active_hole.green_base_follows_fairway:
 		green_base += active_hole.fairway_height * sin(-CUP.z * active_hole.fairway_frequency)
@@ -488,22 +623,57 @@ func _water_features() -> Array:
 	return active_hole.water_ellipses
 
 func _in_water(pos: Vector3) -> bool:
+	if surface_map != null: return _mapped_surface(pos.x, pos.z) == Surface.WATER
 	for feature in _water_features():
 		if _in_ellipse(pos.x, pos.z, feature[0], feature[1], feature[2], feature[3]): return true
 	return false
 
-func _in_bunker(_pos: Vector3) -> bool:
-	# No bunker is visible on the supplied first-hole map.
+func _in_bunker(pos: Vector3) -> bool:
+	if surface_map != null: return _mapped_surface(pos.x, pos.z) == Surface.BUNKER
+	# Parametric holes have no bunkers.
 	return false
 
 func _green_distance(x: float, z: float) -> float:
 	return Vector2((x - CUP.x) / GREEN_RADII.x, (z - CUP.z) / GREEN_RADII.y).length()
 
+# Mapped holes: the surface of the nearest .srf sample. Sample (0, 0) sits at
+# surface_map_origin (min X, max Z) and rows advance toward -Z. Points outside
+# the map, and unknown IDs, are deep rough.
+func _mapped_surface(x: float, z: float) -> int:
+	var spacing: float = active_hole.surface_map_spacing
+	var col := roundi((x - active_hole.surface_map_origin.x) / spacing)
+	var row := roundi((active_hole.surface_map_origin.y - z) / spacing)
+	var width := surface_map.get_width()
+	if col < 0 or row < 0 or col >= width or row >= surface_map.get_height():
+		return Surface.DEEP_ROUGH
+	var id := surface_ids[row * width + col]
+	return id if id < Surface.size() else Surface.DEEP_ROUGH
+
+# Green height weight from the precomputed grid, bilinearly interpolated so the
+# ground has no step where the green plane meets the terrain.
+func _mapped_green_weight(x: float, z: float) -> float:
+	if surface_green_weights.is_empty(): return 0.0
+	var spacing: float = active_hole.surface_map_spacing
+	var gx: float = (x - active_hole.surface_map_origin.x) / spacing - surface_green_rect.position.x
+	var gz: float = (active_hole.surface_map_origin.y - z) / spacing - surface_green_rect.position.y
+	var size := surface_green_rect.size
+	if gx < 0.0 or gz < 0.0 or gx > size.x - 1 or gz > size.y - 1: return 0.0
+	var ix := mini(floori(gx), maxi(size.x - 2, 0))
+	var iz := mini(floori(gz), maxi(size.y - 2, 0))
+	var ix1 := mini(ix + 1, size.x - 1)
+	var iz1 := mini(iz + 1, size.y - 1)
+	var w := surface_green_weights
+	var a := lerpf(w[iz * size.x + ix], w[iz * size.x + ix1], gx - ix)
+	var b := lerpf(w[iz1 * size.x + ix], w[iz1 * size.x + ix1], gx - ix)
+	return lerpf(a, b, gz - iz)
+
 # Single classification of every terrain point. The terrain shader mirrors this
 # order (see _update_terrain_uniforms and shaders/terrain.gdshader), and the
 # gameplay lie (_lie) is derived from the same helpers. SECOND_CUT vs DEEP_ROUGH
-# is visual only: both are "Rough" for gameplay.
+# is visual only: both are "Rough" for gameplay. Mapped holes read the baked
+# surface map instead of the parametric shapes.
 func _surface_at(x: float, z: float) -> int:
+	if surface_map != null: return _mapped_surface(x, z)
 	if _in_water(Vector3(x, 0.0, z)): return Surface.WATER
 	var green_distance := _green_distance(x, z)
 	if green_distance < 1.0: return Surface.GREEN
@@ -599,6 +769,23 @@ func _build_terrain() -> void:
 	for point in active_hole.fairway_centerline:
 		x_end = maxf(x_end, ceilf((point.x + 60.0) / step) * step)
 	var x_segments := ceili((x_end - x_start) / step)
+	if surface_map != null:
+		var map_end: Vector2 = active_hole.surface_map_origin + Vector2((active_hole.surface_map_dimensions.x - 1) * active_hole.surface_map_spacing, -(active_hole.surface_map_dimensions.y - 1) * active_hole.surface_map_spacing)
+		var map_min_x: float = active_hole.surface_map_origin.x
+		var map_max_x: float = map_end.x
+		var map_max_z: float = active_hole.surface_map_origin.y
+		var map_min_z: float = map_end.y
+		if not elevation_samples.is_empty():
+			map_min_x = minf(map_min_x, active_hole.elevation_origin.x)
+			map_max_x = maxf(map_max_x, active_hole.elevation_origin.x + (active_hole.elevation_dimensions.x - 1) * active_hole.elevation_spacing)
+			map_max_z = maxf(map_max_z, active_hole.elevation_origin.y)
+			map_min_z = minf(map_min_z, active_hole.elevation_origin.y - (active_hole.elevation_dimensions.y - 1) * active_hole.elevation_spacing)
+		x_start = floorf(map_min_x / step) * step
+		x_end = ceilf(map_max_x / step) * step
+		z_top = ceilf(map_max_z / step) * step
+		var z_bottom := floorf(map_min_z / step) * step
+		x_segments = maxi(1, ceili((x_end - x_start) / step))
+		z_segments = maxi(1, ceili((z_top - z_bottom) / step))
 	for ix in range(x_segments):
 		for iz in range(z_segments):
 			var x := x_start + ix * step
@@ -625,13 +812,21 @@ func _build_terrain() -> void:
 # Pushes every hole-dependent classification parameter to the terrain shader.
 # Called when the terrain is built, which happens on every _load_hole.
 func _update_terrain_uniforms() -> void:
-	var water := _water_features()
+	var water := _water_features() if surface_map == null else []
 	assert(water.size() <= MAX_WATER_FEATURES, "Raise MAX_WATER_FEATURES and the shader array size")
 	var ellipses := PackedVector4Array()
 	ellipses.resize(MAX_WATER_FEATURES)
 	for i in range(water.size()):
 		ellipses[i] = Vector4(water[i][0], water[i][1], water[i][2], water[i][3])
 	var m := terrain_material
+	m.set_shader_parameter("use_surface_map", surface_map != null)
+	if surface_map != null:
+		# One LA8 texture feeds both samplers: IDs from .r, distances from .a.
+		m.set_shader_parameter("surface_ids", surface_texture)
+		m.set_shader_parameter("surface_distances", surface_texture)
+		m.set_shader_parameter("surface_origin", active_hole.surface_map_origin)
+		m.set_shader_parameter("surface_spacing", active_hole.surface_map_spacing)
+		m.set_shader_parameter("surface_dimensions", Vector2(active_hole.surface_map_dimensions))
 	m.set_shader_parameter("water_ellipses", ellipses)
 	m.set_shader_parameter("water_count", water.size())
 	m.set_shader_parameter("cup", Vector2(CUP.x, CUP.z))
@@ -656,11 +851,11 @@ func _update_terrain_uniforms() -> void:
 	m.set_shader_parameter("dogleg_end", active_hole.dogleg_end)
 	var centerline := PackedVector2Array()
 	centerline.resize(4)
-	assert(active_hole.fairway_centerline.size() <= 4, "At most four fairway centerline points")
-	for i in range(active_hole.fairway_centerline.size()):
+	assert(surface_map != null or active_hole.fairway_centerline.size() <= 4, "At most four fairway centerline points for parametric terrain")
+	for i in range(mini(active_hole.fairway_centerline.size(), 4)):
 		centerline[i] = active_hole.fairway_centerline[i]
 	m.set_shader_parameter("fairway_centerline", centerline)
-	m.set_shader_parameter("fairway_centerline_count", active_hole.fairway_centerline.size())
+	m.set_shader_parameter("fairway_centerline_count", mini(active_hole.fairway_centerline.size(), 4))
 	m.set_shader_parameter("fairway_base_width", FAIRWAY_BASE_WIDTH)
 	m.set_shader_parameter("fairway_bulge", FAIRWAY_BULGE)
 	m.set_shader_parameter("fairway_tee_end_z", FAIRWAY_TEE_END_Z)
@@ -679,13 +874,16 @@ func _fairway_edge_distance(x: float, z: float) -> float:
 	return Vector2(x - _fairway_center(z), end_distance).length() - _fairway_width(z)
 
 func _fairway_contains(x: float, z: float) -> bool:
+	if surface_map != null: return _mapped_surface(x, z) == Surface.FAIRWAY
 	return _fairway_edge_distance(x, z) <= 0.0
 
 func _first_cut_contains(x: float, z: float) -> bool:
+	if surface_map != null: return _mapped_surface(x, z) == Surface.FIRST_CUT
 	var edge := _fairway_edge_distance(x, z)
 	return edge > 0.0 and edge <= FIRST_CUT_WIDTH
 
 func _on_path(x: float, z: float) -> bool:
+	if surface_map != null: return _mapped_surface(x, z) == Surface.PATH
 	return absf(x - (PATH_CENTER_X + PATH_SWAY * sin(z * PATH_SWAY_FREQUENCY) + _fairway_dogleg_shift(z))) < PATH_HALF_WIDTH and z < PATH_START_Z and z > CUP.z - PATH_PAST_CUP
 
 func _add_tree(pos: Vector3, scale_factor: float) -> void:
@@ -891,6 +1089,15 @@ func _estimated_power() -> float:
 
 func _lie(pos: Vector3) -> String:
 	if pos.distance_to(TEE) < 0.5: return "Tee"
+	if surface_map != null:
+		# Tee pads and the collar play as fairway; path and water lies are rough
+		# (water is penalised separately, see _in_water).
+		match _mapped_surface(pos.x, pos.z):
+			Surface.GREEN: return "Green"
+			Surface.BUNKER: return "Bunker"
+			Surface.FAIRWAY, Surface.TEE, Surface.COLLAR: return "Fairway"
+			Surface.FIRST_CUT: return "FirstCut"
+		return "Rough"
 	if _on_green(pos): return "Green"
 	if _in_bunker(pos): return "Bunker"
 	if _fairway_contains(pos.x, pos.z): return "Fairway"
@@ -1134,6 +1341,7 @@ func _round_relative() -> int:
 	return relative
 
 func _on_green(pos: Vector3) -> bool:
+	if surface_map != null: return _mapped_surface(pos.x, pos.z) == Surface.GREEN
 	return _green_distance(pos.x, pos.z) < 1.0
 
 func _distance_to_cup(pos: Vector3) -> float:
