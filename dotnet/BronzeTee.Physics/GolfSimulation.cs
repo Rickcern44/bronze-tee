@@ -118,7 +118,10 @@ public sealed class GolfSimulation(ICourse course, float greenStimpFeet = 10f)
 			if (ball.HasLanded) ball.RolloutMeters += HorizontalDistance(previous, ball.Position);
 			ball.PeakHeightMeters = MathF.Max(ball.PeakHeightMeters, ball.Position.Y - ball.Shot.Start.Y);
 			var ground = course.HeightAt(ball.Position.X, ball.Position.Z) + BallRadius;
-			if (ball.Position.Y <= ground && ball.Velocity.Y < 0)
+			// A rising ball that meets a short steep face (a bunker lip) from above-ground
+			// at the previous step also collides; otherwise it would end up underground.
+			var hitsFace = ball.Velocity.Y >= 0 && previous.Y > course.HeightAt(previous.X, previous.Z) + BallRadius + 1e-4f;
+			if (ball.Position.Y <= ground && (ball.Velocity.Y < 0 || hitsFace))
 			{
 				ball.Position = new Vector3(ball.Position.X, ground, ball.Position.Z);
 				if (course.LieAt(ball.Position) == Lie.Water) ball.Phase = BallPhase.Water;

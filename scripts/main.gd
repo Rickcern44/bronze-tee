@@ -113,6 +113,7 @@ const TERRAIN_TEXTURES := {
 	"second_cut_texture": "res://assets/textures/library/turf/second_cut.png",
 	"deep_rough_texture": "res://assets/textures/library/turf/deep_rough.png",
 	"water_texture": "res://assets/textures/terrain/water.png",
+	"bunker_texture": "res://assets/textures/terrain/bunker_sand.png",
 	"path_texture": "res://assets/textures/library/ground/cart_path.png",
 }
 var CUP := Vector3(0, 0, -322.7832) # Repositioned to each hole's white-tee distance.

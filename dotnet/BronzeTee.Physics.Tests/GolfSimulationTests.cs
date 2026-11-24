@@ -190,6 +190,33 @@ public sealed class GolfSimulationTests
         Assert.Throws<ArgumentOutOfRangeException>(() => simulation.Step(simulation.Start(Driver), 0));
     }
 
+    [Theory]
+    [InlineData(Club.SandWedge, ShotType.Punch, .35f)]
+    [InlineData(Club.SandWedge, ShotType.Normal, .35f)]
+    [InlineData(Club.Driver, ShotType.Stinger, .6f)]
+    public void BallNeverEndsUnderneathAShortSteepBunkerLip(Club club, ShotType type, float power)
+    {
+        var course = new BunkerCourse();
+        var sim = new GolfSimulation(course);
+        var start = new Vector3(0, course.HeightAt(0, 0) + GolfSimulation.BallRadius, 0);
+        var ball = sim.Start(new Shot(start, club, power, 0, ShotShape.Straight, type, Lie.Bunker, Vector3.Zero));
+        for (var i = 0; i < 1200 && ball.Phase is BallPhase.Airborne or BallPhase.Rolling; i++)
+        {
+            sim.Step(ball);
+            Assert.True(ball.Position.Y >= course.HeightAt(ball.Position.X, ball.Position.Z) + GolfSimulation.BallRadius - 0.001f,
+                $"step {i}: ball at {ball.Position} is below ground {course.HeightAt(ball.Position.X, ball.Position.Z)}");
+        }
+    }
+
+    // A 0.6 m deep bunker floor (z 0..-2.5) with a 0.5 m wide lip rising to the surrounding turf.
+    private sealed class BunkerCourse : ICourse
+    {
+        public float HeightAt(float x, float z) => -0.6f * Math.Clamp((z + 3f) / 0.5f, 0f, 1f);
+        public Lie LieAt(Vector3 position) => position.Z > -3f ? Lie.Bunker : Lie.Fairway;
+        public bool IntersectsTree(Vector3 from, Vector3 to) => false;
+        public Vector2 CupPosition => new(0, -10000);
+    }
+
     private sealed class TreeCourse : ICourse
     {
         public float HeightAt(float x, float z) => 0;

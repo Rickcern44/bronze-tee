@@ -15,6 +15,7 @@ uniform sampler2D first_cut_texture : source_color, repeat_enable, filter_linear
 uniform sampler2D second_cut_texture : source_color, repeat_enable, filter_linear_mipmap_anisotropic;
 uniform sampler2D deep_rough_texture : source_color, repeat_enable, filter_linear_mipmap_anisotropic;
 uniform sampler2D water_texture : source_color, repeat_enable, filter_linear_mipmap_anisotropic;
+uniform sampler2D bunker_texture : source_color, repeat_enable, filter_linear_mipmap_anisotropic;
 uniform sampler2D path_texture : source_color, repeat_enable, filter_linear_mipmap_anisotropic;
 
 // Baked surface map (.srf), used instead of the parametric shapes when
@@ -86,6 +87,8 @@ uniform float shallow_strength = 0.55;
 uniform float shallow_width = 1.1;
 uniform float path_edge_dark = 0.18;
 uniform float path_edge_width = 0.25;
+uniform float bunker_lip_shadow = 0.35; // darkening of the sand just inside a bunker edge (the lip face)
+uniform float bunker_lip_width = 0.7;    // metres
 uniform float water_roughness = 0.12;
 uniform float albedo_gain = 0.75; // compensates the scene's bright sun + ambient so albedo does not clip
 
@@ -172,6 +175,7 @@ void fragment() {
 	vec3 t_first = texture(first_cut_texture, guv).rgb;
 	vec3 t_second = texture(second_cut_texture, guv).rgb;
 	vec3 t_deep = texture(deep_rough_texture, guv).rgb;
+	vec3 t_sand = texture(bunker_texture, guv).rgb;
 	// Path: u runs across the path, v along it, so the joint repeats every path width.
 	float path_width = path_half_width * 2.0;
 	vec3 t_path = texture(path_texture, vec2((p.x - path_x) / path_width + 0.5, p.y / path_width)).rgb;
@@ -221,7 +225,8 @@ void fragment() {
 		palette[SRF_TEE] = t_fw_light * shadow;
 		palette[SRF_PATH] = t_path;
 		palette[SRF_WATER] = mix(t_water, shallow_color.rgb, (1.0 - smoothstep(0.0, shallow_width, dist)) * shallow_strength);
-		palette[SRF_BUNKER] = vec3(0.66, 0.59, 0.43); // Flat sand until RCE-170 adds a texture.
+		// Sand, darker toward the edge (distance channel) to suggest the lip face.
+		palette[SRF_BUNKER] = t_sand * (1.0 - bunker_lip_shadow * (1.0 - smoothstep(0.0, bunker_lip_width, dist)));
 		vec2 cell = floor(grid);
 		vec2 fraction = grid - cell;
 		int id00 = mapped_id(cell);
