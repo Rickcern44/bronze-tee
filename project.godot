@@ -11,6 +11,7 @@ config_version=5
 [application]
 
 config/name="Bronze Tee"
+config/version="0.0.0-dev"
 run/main_scene="res://scenes/main.tscn"
 config/features=PackedStringArray("4.7")
 config/icon="res://icon.png"
