@@ -4,3 +4,9 @@
 **/bin/
 **/obj/
 playtest-output/
+# Game-team headless playtest reports
+.playtest/
+# Python bytecode
+__pycache__/
+# Import metadata for generated artifacts
+artifacts/*.import
