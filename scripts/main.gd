@@ -57,7 +57,7 @@ const MIN_BACKSWING = 20.0
 const FORWARD_TO_HIT = 25.0
 const SWIPE_DEADZONE_DEGREES = 2.0
 const MAX_SWIPE_DEGREES = 12.0
-const COURSE = preload("res://resources/courses/royal_crest.tres")
+var COURSE: Resource
 # The course resource controls the round order.
 var HOLES: Array = []
 var active_hole: Resource
@@ -163,6 +163,7 @@ var prediction_key: Array = []
 var terrain_material: ShaderMaterial
 
 func _ready() -> void:
+	COURSE = _load_active_course()
 	assert(not COURSE.holes.is_empty(), "A course must contain at least one hole")
 	HOLES = COURSE.holes.duplicate()
 	_configure_hole(0)
@@ -175,6 +176,15 @@ func _ready() -> void:
 	_build_ui()
 	_reset_ball()
 	_update_hud()
+
+func _load_active_course() -> Resource:
+	var course_path := str(ProjectSettings.get_setting("bronze_tee/course/default", "res://resources/courses/royal_crest_legacy/course.tres"))
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--course="):
+			course_path = arg.trim_prefix("--course=").strip_edges()
+	var course: Resource = load(course_path)
+	assert(course != null, "Could not load course: %s" % course_path)
+	return course
 
 func _material(color: Color) -> StandardMaterial3D:
 	var material := StandardMaterial3D.new()
