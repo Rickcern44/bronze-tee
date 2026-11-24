@@ -42,7 +42,7 @@ func check() -> void:
 	game._start_new_round()
 	assert(game.hole_index == 0 and game.hole_scores.is_empty() and game.strokes == 0)
 	var mean_reload_ms := float(reload_total_usec) / 18.0 / 1000.0
-	game.HOLES = [load("res://resources/holes/royal_crest_01.tres")]
+	game.HOLES = [load("res://resources/courses/royal_crest_legacy/holes/royal_crest_01.tres")]
 	game._elevation_grid_cache.clear()
 	var cold_started := Time.get_ticks_usec()
 	game._load_hole(0)
