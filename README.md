@@ -119,14 +119,18 @@ runs on the merge commit:
 
 Pushes to `main` are serialized (one `release-main` concurrency group, never
 cancelled mid-run). If merges queue up, GitHub drops the older waiting run; the
-newest one releases and its notes cover every commit since the last tag. If the
-`release` job fails after tagging, re-run the failed job: it reuses its own tag.
+newest one releases and its notes cover every commit since the last tag. The
+release job only releases when its commit is still the tip of `main`, so a
+stale re-run of an older merge does nothing.
+
+A failed release job is recovered by re-running that job before the next merge:
+it reuses its own tag. This also fixes an orphan tag left by a failed publish.
+After the next merge lands, re-run is a no-op, so fix forward instead.
 
 The commit type picks the bump (see above), so choose the PR title with care:
 it is the release. Going to `1.0.0` still needs an explicit decision by the
-project owner. Hotfixes are normal `fix:` PRs and release on merge; a
-maintainer should only push a `vX.Y.Z` tag by hand to recover from a broken
-release, and nothing publishes for a hand-pushed tag.
+project owner. Hotfixes are normal `fix:` PRs and release on merge. A
+hand-pushed tag publishes nothing; it is not a release path.
 
 Never move or delete a published tag; fix forward with a new patch release.
 

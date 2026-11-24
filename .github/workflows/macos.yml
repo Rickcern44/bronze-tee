@@ -153,6 +153,7 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.sha }}
       - name: Check the version and create the local tag
+        id: check
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
@@ -160,6 +161,14 @@ jobs:
           SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
+          # A stale re-run of an older merge must never tag, release or take
+          # --latest: only the current tip of main may release.
+          head="$(git ls-remote origin refs/heads/main | cut -f1)"
+          if [ "$head" != "$SHA" ]; then
+            echo "::notice::main moved on ($head); $SHA is not the tip, so this run releases nothing."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
           if ! printf '%s' "$SEMVER" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
             echo "Computed version '$SEMVER' is not a plain X.Y.Z; refusing to release." >&2
             exit 1
@@ -185,6 +194,7 @@ jobs:
             git tag -a "$tag" -m "$tag" "$SHA"
           fi
       - name: Install git-cliff 2.14.2
+        if: steps.check.outputs.skip != 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -196,6 +206,7 @@ jobs:
           mv "$RUNNER_TEMP/git-cliff-2.14.2/git-cliff" "$RUNNER_TEMP/bin/git-cliff"
           echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
       - name: Release notes
+        if: steps.check.outputs.skip != 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -205,10 +216,12 @@ jobs:
           printf '\nThis Apple silicon app is ad-hoc signed and is not notarized.\n' >> "$RUNNER_TEMP/notes.md"
           cat "$RUNNER_TEMP/notes.md"
       - uses: actions/download-artifact@v4
+        if: steps.check.outputs.skip != 'true'
         with:
           name: Bronze-Tee-${{ needs.build.outputs.semver }}-macOS
           path: dist
       - name: Tag and publish GitHub Release
+        if: steps.check.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
