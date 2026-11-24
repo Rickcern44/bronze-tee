@@ -105,44 +105,12 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-  sign-and-test:
-    needs: build
-    runs-on: macos-15
-    timeout-minutes: 15
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: Bronze-Tee-${{ needs.build.outputs.semver }}-unsigned
-          path: dist
-      - name: Sign and test the Mac app
-        shell: bash
-        run: |
-          set -euo pipefail
-          unzip -q dist/Bronze-Tee-macOS.zip -d "$RUNNER_TEMP/game"
-          app="$RUNNER_TEMP/game/Bronze Tee.app"
-          codesign --force --deep --sign - "$app"
-          codesign --verify --deep --strict "$app"
-          "$app/Contents/MacOS/Bronze Tee" --headless --quit-after 5 > "$RUNNER_TEMP/game.log" 2>&1
-          if grep -Eq '(^ERROR:|SCRIPT ERROR|Unhandled exception)' "$RUNNER_TEMP/game.log"; then
-            head -80 "$RUNNER_TEMP/game.log"
-            echo 'The exported game reported an error.' >&2
-            exit 1
-          fi
-          rm dist/Bronze-Tee-macOS.zip
-          ditto -c -k --sequesterRsrc --keepParent "$app" dist/Bronze-Tee-macOS.zip
-      - uses: actions/upload-artifact@v4
-        with:
-          name: Bronze-Tee-${{ needs.build.outputs.semver }}-macOS
-          path: dist/Bronze-Tee-macOS.zip
-          if-no-files-found: error
-          retention-days: 14
-
-  # Tags and publishes vX.Y.Z for every push to main. A tag pushed with
+  # Tags and publishes vX.Y.Z (with the unsigned zip from the build job) for every push to main. A tag pushed with
   # GITHUB_TOKEN does not trigger other workflows, so tagging and publishing
   # happen here, in one job. Only this job has contents: write.
   release:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [build, sign-and-test]
+    needs: [build]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -213,12 +181,16 @@ jobs:
           git cliff --version
           # Everything between the previous release tag and the new one.
           git cliff --current --strip all -o "$RUNNER_TEMP/notes.md"
-          printf '\nThis Apple silicon app is ad-hoc signed and is not notarized.\n' >> "$RUNNER_TEMP/notes.md"
+          # shellcheck disable=SC2016 # the backticks are markdown, not substitutions
+          printf '\n%s\n%s\n%s\n' \
+            'This is an unsigned build and is not notarized. Install it with' \
+            '`tools/utils/update-macos.sh`, which checks the download and ad-hoc signs it' \
+            'locally, or build from source with `tools/utils/build-macos.sh`.' >> "$RUNNER_TEMP/notes.md"
           cat "$RUNNER_TEMP/notes.md"
       - uses: actions/download-artifact@v4
         if: steps.check.outputs.skip != 'true'
         with:
-          name: Bronze-Tee-${{ needs.build.outputs.semver }}-macOS
+          name: Bronze-Tee-${{ needs.build.outputs.semver }}-unsigned
           path: dist
       - name: Tag and publish GitHub Release
         if: steps.check.outputs.skip != 'true'

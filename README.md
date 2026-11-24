@@ -2,21 +2,30 @@
 
 A desktop-first arcade golf four-hole prototype inspired by the first four holes of Royal Crest Golf Club in Columbia Station, Ohio for Godot 4. It uses procedural course visuals and free third-party tree models; no plugins are required.
 
-## Mac test downloads
+## Mac builds
 
-Each push to `main` runs the project checks and builds a Mac app for Apple silicon and Intel.
-When the build, signing and smoke test succeed, CI tags the commit `vX.Y.Z` and
+Each push to `main` runs the project checks on Linux and exports a Mac app for
+Apple silicon and Intel. When that succeeds, CI tags the commit `vX.Y.Z` and
 publishes a GitHub Release (not a prerelease) on the repository's
 [Releases page](https://github.com/Rickcern44/bronze-tee/releases), titled
 `Bronze Tee vX.Y.Z`; see [Versioning and releases](#versioning-and-releases).
-Download `Bronze-Tee-macOS.zip`, unzip it, and open `Bronze Tee.app`. The app is ad-hoc
-signed and is not notarized, so macOS can ask you to approve it in Privacy &
-Security. Pull requests run the same checks and provide a temporary Actions
-artifact, but do not tag or publish. A failed check does not publish a build.
+**The release asset `Bronze-Tee-macOS.zip` is unsigned and not notarized, and CI
+no longer signs or smoke-tests it on macOS.** Signing happens on your Mac.
+Pull requests run the same checks and provide a temporary Actions artifact, but
+do not tag or publish. A failed check does not publish a build.
 
-To install the newest release on a Mac, quit the game and run
-`tools/utils/update-macos.sh`. The script checks the download checksum and app
-signature before it replaces `/Applications/Bronze Tee.app`. It requires Python 3.
+Two ways to get the app on a Mac (quit the game first; both need Python 3 and
+replace `/Applications/Bronze Tee.app`, keeping a backup until the swap works):
+
+- Install the newest release: `tools/utils/update-macos.sh`. It checks the
+  download's SHA-256 digest, ad-hoc signs the app locally, verifies the
+  signature and installs it. macOS can still ask you to approve the app in
+  Privacy & Security.
+- Build from source: `tools/utils/build-macos.sh` (needs Godot 4.7.2 .NET, the
+  .NET 10 SDK and the Godot export templates; it lists what is missing). It
+  fast-forwards a clean `main` (`--no-pull` builds the current checkout, `--check`
+  also runs `./tools/check.sh`), stamps the version, exports, ad-hoc signs,
+  smoke-tests, installs, and always restores the stamped files.
 
 The workflow uses Godot 4.7.2 .NET and .NET 10. Update the workflow, export
 templates, SDK version, and download checksums together when upgrading Godot.
@@ -108,12 +117,12 @@ git cliff --latest --strip all                      # notes for the newest tag
 Nobody tags by hand. When a PR is squash-merged, the `Mac test build` workflow
 runs on the merge commit:
 
-1. `build` runs the check gate, stamps the version from GitVersion (the plain
-   `X.Y.Z`, the same number that gets tagged) and exports the Mac app.
-2. `sign-and-test` ad-hoc signs it and smoke-tests it on macOS.
-3. `release` refuses if `vX.Y.Z` already points at another commit or a release
+1. `build` (Linux) runs the check gate, stamps the version from GitVersion (the
+   plain `X.Y.Z`, the same number that gets tagged) and exports the unsigned
+   Mac app. There is no macOS signing or smoke-test job.
+2. `release` refuses if `vX.Y.Z` already points at another commit or a release
    for it exists, creates the annotated tag `vX.Y.Z` on the commit, pushes it,
-   and publishes the GitHub Release with the git-cliff notes and
+   and publishes the GitHub Release with the git-cliff notes and the unsigned
    `Bronze-Tee-macOS.zip`. Tagging and publishing share one job because tags
    pushed with `GITHUB_TOKEN` do not trigger other workflows.
 

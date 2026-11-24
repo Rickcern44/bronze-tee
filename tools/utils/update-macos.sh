@@ -1,5 +1,7 @@
 #!/bin/bash
 # Download the newest working Bronze Tee release and install it on macOS.
+# The release asset is an UNSIGNED build (CI does not sign): this script checks
+# its SHA-256 digest, then ad-hoc signs the app locally before installing it.
 # Prefers the newest stable release (vX.Y.Z, not a prerelease); older test-*
 # prereleases are only a fallback while no stable release exists.
 set -euo pipefail
@@ -70,8 +72,10 @@ printf '%s  %s\n' "$digest" "$work/game.zip" | shasum -a 256 -c -
 ditto -x -k "$work/game.zip" "$work/unpacked"
 source_app="$work/unpacked/Bronze Tee.app"
 [ -f "$source_app/Contents/MacOS/Bronze Tee" ] || { echo 'The app is missing from the download.' >&2; exit 1; }
-codesign --verify --deep --strict "$source_app"
+# Nothing in the download is signed; sign the staged copy with an ad-hoc
+# identity (macOS refuses to run unsigned arm64 code), then verify it.
 ditto "$source_app" "$staged"
+codesign --force --deep --sign - "$staged"
 codesign --verify --deep --strict "$staged"
 if [ -e "$app" ]; then
   mv "$app" "$backup"
