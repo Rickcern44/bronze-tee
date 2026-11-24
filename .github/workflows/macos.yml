@@ -3,13 +3,21 @@ name: Mac test build
 on:
   push:
     branches: [main]
-    # Release tags (vX.Y.Z) build, sign and publish a GitHub Release.
-    tags: ['v*']
   pull_request:
   workflow_dispatch:
 
 permissions:
   contents: read
+
+# Every push to main is a release: the release job tags and publishes it.
+# Pushes to main share one group and are never cancelled mid-run, so releases
+# are serialized and each run computes its version after the previous tag
+# exists. (GitHub keeps at most one waiting run; if several merges queue up,
+# the newest one releases and its notes cover all of them.) PR and manual runs
+# are per-ref and the superseded ones are cancelled.
+concurrency:
+  group: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && 'release-main' || format('{0}-{1}', github.workflow, github.ref) }}
+  cancel-in-progress: ${{ github.event_name != 'push' }}
 
 jobs:
   build:
@@ -129,52 +137,52 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+  # Tags and publishes vX.Y.Z for every push to main. A tag pushed with
+  # GITHUB_TOKEN does not trigger other workflows, so tagging and publishing
+  # happen here, in one job. Only this job has contents: write.
   release:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: [build, sign-and-test]
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: Bronze-Tee-${{ needs.build.outputs.semver }}-macOS
-          path: dist
-      - name: Publish test release
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-          COMMIT: ${{ github.sha }}
-          RUN_ID: ${{ github.run_id }}
-          RUN_ATTEMPT: ${{ github.run_attempt }}
-          SEMVER: ${{ needs.build.outputs.semver }}
-          DISPLAY_VERSION: ${{ needs.build.outputs.display }}
-        run: |
-          set -euo pipefail
-          tag="test-${RUN_ID}-${RUN_ATTEMPT}"
-          # The asset keeps its fixed name; tools/utils/update-macos.sh looks it up.
-          gh release create "$tag" dist/Bronze-Tee-macOS.zip \
-            --target "$COMMIT" --prerelease --title "Bronze Tee ${SEMVER} (Mac test build)" \
-            --notes "Mac test build of Bronze Tee ${DISPLAY_VERSION} (commit $COMMIT, run $RUN_ID). This Apple silicon app is ad-hoc signed and is not notarized."
-
-  publish-release:
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
-    needs: [build, sign-and-test]
-    runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Check tag matches computed version
+          ref: ${{ github.sha }}
+      - name: Check the version and create the local tag
         env:
-          TAG: ${{ github.ref_name }}
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
           SEMVER: ${{ needs.build.outputs.semver }}
+          SHA: ${{ github.sha }}
         run: |
-          if [ "${TAG#v}" != "$SEMVER" ]; then
-            echo "Tag $TAG does not match the GitVersion result $SEMVER." >&2
+          set -euo pipefail
+          if ! printf '%s' "$SEMVER" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "Computed version '$SEMVER' is not a plain X.Y.Z; refusing to release." >&2
             exit 1
+          fi
+          tag="v$SEMVER"
+          if git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
+            # Re-running a failed release job is fine if the tag is ours.
+            if [ "$(git rev-parse "refs/tags/$tag^{commit}")" != "$SHA" ]; then
+              echo "Tag $tag already exists on another commit; refusing to move or reuse it." >&2
+              exit 1
+            fi
+            echo "Tag $tag already points at $SHA (re-run)."
+          fi
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "Release $tag already exists; refusing to overwrite it." >&2
+            exit 1
+          fi
+          # Local only for now, so git-cliff can render notes for the new tag.
+          # It is pushed in the last step, right before the release is created.
+          if ! git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git tag -a "$tag" -m "$tag" "$SHA"
           fi
       - name: Install git-cliff 2.14.2
         shell: bash
@@ -187,11 +195,12 @@ jobs:
           mkdir -p "$RUNNER_TEMP/bin"
           mv "$RUNNER_TEMP/git-cliff-2.14.2/git-cliff" "$RUNNER_TEMP/bin/git-cliff"
           echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
-      - name: Release notes from the changelog
+      - name: Release notes
         shell: bash
         run: |
           set -euo pipefail
           git cliff --version
+          # Everything between the previous release tag and the new one.
           git cliff --current --strip all -o "$RUNNER_TEMP/notes.md"
           printf '\nThis Apple silicon app is ad-hoc signed and is not notarized.\n' >> "$RUNNER_TEMP/notes.md"
           cat "$RUNNER_TEMP/notes.md"
@@ -199,14 +208,18 @@ jobs:
         with:
           name: Bronze-Tee-${{ needs.build.outputs.semver }}-macOS
           path: dist
-      - name: Publish GitHub Release
+      - name: Tag and publish GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-          TAG: ${{ github.ref_name }}
+          SEMVER: ${{ needs.build.outputs.semver }}
         run: |
           set -euo pipefail
+          tag="v$SEMVER"
+          # Pushing a tag that already points at the same commit is a no-op;
+          # a tag that exists elsewhere is rejected (no force).
+          git push origin "refs/tags/$tag"
           # The asset keeps its fixed name; tools/utils/update-macos.sh looks it up.
-          gh release create "$TAG" dist/Bronze-Tee-macOS.zip \
-            --verify-tag --prerelease --title "Bronze Tee ${TAG}" \
+          gh release create "$tag" dist/Bronze-Tee-macOS.zip \
+            --verify-tag --latest --title "Bronze Tee $tag" \
             --notes-file "$RUNNER_TEMP/notes.md"

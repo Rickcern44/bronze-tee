@@ -1,10 +1,13 @@
 # GitVersion 6.x configuration for Bronze Tee.
 #
 # The version comes from git tags only; no file in the repo holds it.
-#   - Release tags are annotated `vX.Y.Z` tags on main (created by the
-#     maintainer / merger agent, never by implementers).
-#   - Untagged commits on main compute `X.Y.Z-alpha.N`, where N counts the
-#     commits since the last release tag.
+#   - Release tags are annotated `vX.Y.Z` tags on main. CI creates one for
+#     every push (squash merge) to main; implementers never tag by hand.
+#   - Untagged commits on main compute the plain next version `X.Y.Z` (no
+#     pre-release label): the highest increment found since the last release
+#     tag, applied to that tag. A tagged commit computes exactly its tag.
+#   - Branch builds keep a branch label (`X.Y.Z-<branch>.N`), so they can
+#     never collide with a release.
 #   - Other tags (`test-*`, `mac-test-*`) do not match the tag prefix and are
 #     ignored.
 #
@@ -41,10 +44,11 @@ no-bump-message: '\+semver:\s?(none|skip)'
 branches:
   main:
     regex: ^main$
-    # ContinuousDelivery in GitVersion 6 numbers every commit since the last
-    # tag: 0.1.1-alpha.1, 0.1.1-alpha.2, ...
-    mode: ContinuousDelivery
-    label: alpha
+    # No label, and ContinuousDeployment (ContinuousDelivery and ManualDeployment
+    # both append a build counter): main computes the plain next version,
+    # 0.1.1, 0.1.2, ...
+    mode: ContinuousDeployment
+    label: ''
     increment: Patch
     is-main-branch: true
   feature:
