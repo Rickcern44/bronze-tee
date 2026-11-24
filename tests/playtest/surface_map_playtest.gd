@@ -20,7 +20,7 @@ extends SceneTree
 # without hiding a wrong texture or a wrong ID.
 # Colour space: with this project's Compatibility renderer, the unshaded output
 # is albedo_gain times the stored (sRGB-encoded) texel values, with no transfer
-# function on input or output. Constants such as the bunker sand, bank_color
+# function on input or output. Constants such as bank_color
 # and shallow_color also pass through unchanged. All comparisons are therefore
 # in display values, the space the shader blends in.
 # A second pass renders the real, lit shader. On this almost flat terrain,
@@ -195,7 +195,7 @@ func palette(id: int, p: Vector2) -> Color:
 		var a := texel("water_texture", wuv)
 		var b := texel("water_texture", wuv * 1.17 + Vector2(0.37, 0.61))
 		c = Color((a.r + b.r) * 0.5, (a.g + b.g) * 0.5, (a.b + b.b) * 0.5)
-	elif id == S.BUNKER: c = Color(0.66, 0.59, 0.43)
+	elif id == S.BUNKER: c = texel("bunker_texture", guv)  # lip shadow only applies within bunker_lip_width of the edge
 	return Color(c.r * gain, c.g * gain, c.b * gain)
 
 
@@ -398,7 +398,7 @@ func run() -> void:
 		"green": full_tile_mean("green_texture"),
 		"path": full_tile_mean("path_texture"),
 		"water": full_tile_mean("water_texture"),
-		"bunker": Color(0.66 * gain, 0.59 * gain, 0.43 * gain),
+		"bunker": full_tile_mean("bunker_texture"),
 	}
 	var mapped: bool = game.surface_map != null and material.get_shader_parameter("use_surface_map") == true
 	step(1, mapped and edits_ok and game.active_hole.resource_path == FIXTURE,
