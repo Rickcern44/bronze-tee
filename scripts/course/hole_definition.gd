@@ -9,6 +9,8 @@ extends Resource
 @export var par: int = 4
 @export var yards: float = 353.0
 @export_group("Positions")
+@export var origin_latlon: Vector2 = Vector2.ZERO
+@export var bearing_deg: float = 0.0
 @export var tee_position: Vector2 = Vector2.ZERO
 @export var cup_position: Vector2 = Vector2(0.0, -322.7832)
 @export var tee_ellipse: Vector4 = Vector4(0.0, -2.0, 7.0, 6.0)

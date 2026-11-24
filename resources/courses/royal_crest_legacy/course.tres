@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="CourseDefinition" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/course/course_definition.gd" id="1_course"]
+[ext_resource type="Resource" path="res://resources/courses/royal_crest_legacy/holes/royal_crest_01.tres" id="2_hole"]
+[ext_resource type="Resource" path="res://resources/courses/royal_crest_legacy/holes/royal_crest_02.tres" id="3_hole"]
+[ext_resource type="Resource" path="res://resources/courses/royal_crest_legacy/holes/royal_crest_03.tres" id="4_hole"]
+[ext_resource type="Resource" path="res://resources/courses/royal_crest_legacy/holes/royal_crest_04.tres" id="5_hole"]
+
+[resource]
+script = ExtResource("1_course")
+display_name = "Royal Crest"
+id = "royal_crest_legacy"
+source_kind = "real"
+crs = "EPSG:26917"
+notes = "Four-hole Royal Crest geodata regression fixture."
+holes = Array[Resource]([ExtResource("2_hole"), ExtResource("3_hole"), ExtResource("4_hole"), ExtResource("5_hole")])

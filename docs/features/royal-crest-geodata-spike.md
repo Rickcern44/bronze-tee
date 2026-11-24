@@ -10,7 +10,7 @@ The four playable holes use real, offline elevation crops and approximate mapped
 
 ## How the crop works
 
-`tools/import_royal_crest_elevation.py` transforms the mapped tee and green into the GeoTIFF's projected CRS (the supplied tile is NAD83 / UTM zone 17N, EPSG:26917). Each mapped tee is a local origin, negative Z points toward that hole's mapped green, and positive X points right. The importer bilinearly samples the source at 2 m spacing and subtracts the mapped origin's elevation. The outputs `assets/terrain/royal_crest_01.f32` through `royal_crest_04.f32` are little-endian float32, row-major, with their first sample at X = -120 m, Z = 100 m; rows advance toward negative Z. Holes 1–3 use 161 × 301 samples; hole 4 uses 171 × 251.
+`tools/import_royal_crest_elevation.py` transforms the mapped tee and green into the GeoTIFF's projected CRS (the supplied tile is NAD83 / UTM zone 17N, EPSG:26917). Each mapped tee is a local origin, negative Z points toward that hole's mapped green, and positive X points right. The importer bilinearly samples the source at 2 m spacing and subtracts the mapped origin's elevation. The outputs `resources/courses/royal_crest_legacy/terrain/royal_crest_01.f32` through `royal_crest_04.f32` are little-endian float32, row-major, with their first sample at X = -120 m, Z = 100 m; rows advance toward negative Z. Holes 1–3 use 161 × 301 samples; hole 4 uses 171 × 251.
 
 Each hole resource configures its grid and centerline points. The same `_ground_height` function feeds the terrain mesh, ball simulation through `PhysicsBridge`, previews, trees and the cup. It bilinearly interpolates the sampled ground and blends it into a playable plane over each green. The plane is fitted to nearby elevation samples and its slope is capped at 2%: raw 1 m data produced excessively steep greens. The resulting putting surface is an approximation, not a measured green. Queries outside the grid clamp to its edge. The rendered terrain mesh is sampled on a 2 m grid and triangulated; between vertices it approximates the physics surface. Fictional holes can still use procedural terrain. The default tee aim points down the first mapped leg.
 
@@ -18,7 +18,7 @@ To reproduce the crop, download the tile above and run:
 
 ```sh
 python3 -m pip install numpy pyproj rasterio
-python3 tools/import_royal_crest_elevation.py /path/to/USGS_1M_17_x42y458_OH_Statewide_Phase1_2019_B19.tif assets/terrain/royal_crest_01.f32 --hole 1
+python3 tools/import_royal_crest_elevation.py /path/to/USGS_1M_17_x42y458_OH_Statewide_Phase1_2019_B19.tif resources/courses/royal_crest_legacy/terrain/royal_crest_01.f32 --hole 1
 ```
 
 Repeat with `--hole 2`, `--hole 3` and `--hole 4` and the corresponding output filenames. The source tile is roughly 322 MB; each resulting game file is under 200 KB. Keep the source tile outside the game project. The generated `.f32` files are non-resource files: when creating a Godot export preset, include `*.f32` in its non-resource export filter so exported builds contain the terrain.

@@ -5,7 +5,7 @@ func _initialize() -> void:
 
 func check() -> void:
 	var fixture = load("res://tests/fixtures/data_driven_hole.tres")
-	var course = load("res://resources/courses/royal_crest.tres")
+	var course = load("res://resources/courses/royal_crest_legacy/course.tres")
 	course.holes.insert(1, fixture)
 	var game = load("res://scenes/main.tscn").instantiate()
 	root.add_child(game)
