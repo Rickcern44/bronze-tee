@@ -7,6 +7,13 @@ cd "$(dirname "$0")/.."
 # Stable sort order for the check scripts.
 export LC_ALL=C
 
+echo "==> course import offline tests"
+python3 -m unittest discover -s tests -p 'test_*.py'
+if [ "$?" -ne 0 ]; then
+	echo "CHECK GATE FAILED: course import offline tests"
+	exit 1
+fi
+
 CHECK_TIMEOUT="${CHECK_TIMEOUT:-120}"
 IMPORT_TIMEOUT=120
 BAD_RE='SCRIPT ERROR|Assertion failed|^ERROR:'
@@ -31,7 +38,7 @@ for dir in dotnet/*.Tests; do
 	[ -d "$dir" ] || continue
 	echo "-- $dir"
 	log="$LOGDIR/unit-$(basename "$dir").log"
-	dotnet test "$dir" --no-restore >"$log" 2>&1
+	dotnet test "$dir" >"$log" 2>&1
 	rc=$?
 	cat "$log"
 	if [ "$rc" -ne 0 ]; then
