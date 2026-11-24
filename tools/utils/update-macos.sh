@@ -1,5 +1,9 @@
 #!/bin/bash
-# Download the newest working Bronze Tee test release and install it on macOS.
+# Download the newest working Bronze Tee release and install it on macOS.
+# The release asset is an UNSIGNED build (CI does not sign): this script checks
+# its SHA-256 digest, then ad-hoc signs the app locally before installing it.
+# Prefers the newest stable release (vX.Y.Z, not a prerelease); older test-*
+# prereleases are only a fallback while no stable release exists.
 set -euo pipefail
 
 repo='Rickcern44/bronze-tee'
@@ -24,7 +28,7 @@ if ! command -v python3 >/dev/null; then
   echo 'Python 3 is required. Install it, then run this script again.' >&2
   exit 1
 fi
-if /usr/bin/osascript -e 'application id "com.cernylabs.bronzetee" is running' | grep -qx true; then
+if pgrep -f '/Bronze Tee.app/Contents/MacOS/' >/dev/null; then
   echo 'Quit Bronze Tee, then run this script again.' >&2
   exit 1
 fi
@@ -39,15 +43,20 @@ python3 - "$work/releases.json" "$asset" > "$work/release.txt" <<'PY'
 import json, sys
 with open(sys.argv[1], encoding='utf-8') as f:
     releases = json.load(f)
-for release in releases:
-    if release.get('draft') or 'broken' in (release.get('name') or '').lower():
-        continue
-    for asset in release.get('assets', []):
-        if asset.get('name') == sys.argv[2] and asset.get('digest', '').startswith('sha256:'):
-            print(release['tag_name'])
-            print(asset['browser_download_url'])
-            print(asset['digest'].split(':', 1)[1])
-            sys.exit(0)
+# The API lists releases newest first; take the first usable stable one, then
+# fall back to the first usable prerelease (legacy test-* builds).
+for want_prerelease in (False, True):
+    for release in releases:
+        if release.get('draft') or 'broken' in (release.get('name') or '').lower():
+            continue
+        if bool(release.get('prerelease')) != want_prerelease:
+            continue
+        for asset in release.get('assets', []):
+            if asset.get('name') == sys.argv[2] and asset.get('digest', '').startswith('sha256:'):
+                print(release['tag_name'])
+                print(asset['browser_download_url'])
+                print(asset['digest'].split(':', 1)[1])
+                sys.exit(0)
 raise SystemExit('No usable Bronze Tee release with a SHA-256 digest was found.')
 PY
 tag=$(sed -n '1p' "$work/release.txt")
@@ -63,8 +72,10 @@ printf '%s  %s\n' "$digest" "$work/game.zip" | shasum -a 256 -c -
 ditto -x -k "$work/game.zip" "$work/unpacked"
 source_app="$work/unpacked/Bronze Tee.app"
 [ -f "$source_app/Contents/MacOS/Bronze Tee" ] || { echo 'The app is missing from the download.' >&2; exit 1; }
-codesign --verify --deep --strict "$source_app"
+# Nothing in the download is signed; sign the staged copy with an ad-hoc
+# identity (macOS refuses to run unsigned arm64 code), then verify it.
 ditto "$source_app" "$staged"
+codesign --force --deep --sign - "$staged"
 codesign --verify --deep --strict "$staged"
 if [ -e "$app" ]; then
   mv "$app" "$backup"

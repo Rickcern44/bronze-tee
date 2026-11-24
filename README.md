@@ -2,21 +2,30 @@
 
 A desktop-first arcade golf four-hole prototype inspired by the first four holes of Royal Crest Golf Club in Columbia Station, Ohio for Godot 4. It uses procedural course visuals and free third-party tree models; no plugins are required.
 
-## Mac test downloads
+## Mac builds
 
-Each push to `main` runs the project checks and builds a Mac app for Apple silicon and Intel.
-When the build succeeds, GitHub publishes a prerelease on the repository's
-[Releases page](https://github.com/Rickcern44/bronze-tee/releases), titled with the
-computed version (for example `Bronze Tee 0.1.1-alpha.3 (Mac test build)`). Release
-tags (`vX.Y.Z`) publish a versioned release; see [Versioning and releases](#versioning-and-releases). Download
-`Bronze-Tee-macOS.zip`, unzip it, and open `Bronze Tee.app`. The app is ad-hoc
-signed and is not notarized, so macOS can ask you to approve it in Privacy &
-Security. Pull requests run the same checks and provide a temporary Actions
-artifact, but do not publish a release. A failed check does not publish a build.
+Each push to `main` runs the project checks on Linux and exports a Mac app for
+Apple silicon and Intel. When that succeeds, CI tags the commit `vX.Y.Z` and
+publishes a GitHub Release (not a prerelease) on the repository's
+[Releases page](https://github.com/Rickcern44/bronze-tee/releases), titled
+`Bronze Tee vX.Y.Z`; see [Versioning and releases](#versioning-and-releases).
+**The release asset `Bronze-Tee-macOS.zip` is unsigned and not notarized, and CI
+no longer signs or smoke-tests it on macOS.** Signing happens on your Mac.
+Pull requests run the same checks and provide a temporary Actions artifact, but
+do not tag or publish. A failed check does not publish a build.
 
-To install the newest test build on a Mac, quit the game and run
-`tools/utils/update-macos.sh`. The script checks the download checksum and app
-signature before it replaces `/Applications/Bronze Tee.app`. It requires Python 3.
+Two ways to get the app on a Mac (quit the game first; both need Python 3 and
+replace `/Applications/Bronze Tee.app`, keeping a backup until the swap works):
+
+- Install the newest release: `tools/utils/update-macos.sh`. It checks the
+  download's SHA-256 digest, ad-hoc signs the app locally, verifies the
+  signature and installs it. macOS can still ask you to approve the app in
+  Privacy & Security.
+- Build from source: `tools/utils/build-macos.sh` (needs Godot 4.7.2 .NET, the
+  .NET 10 SDK and the Godot export templates; it lists what is missing). It
+  fast-forwards a clean `main` (`--no-pull` builds the current checkout, `--check`
+  also runs `./tools/check.sh`, which needs `timeout`: `brew install coreutils`), stamps the version, exports, ad-hoc signs,
+  smoke-tests, installs, and always restores the stamped files.
 
 The workflow uses Godot 4.7.2 .NET and .NET 10. Update the workflow, export
 templates, SDK version, and download checksums together when upgrading Godot.
@@ -27,12 +36,14 @@ Bronze Tee follows [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.ht
 The version is never written by hand: [GitVersion](https://gitversion.net)
 computes it from git tags using `GitVersion.yml`.
 
-- Releases are annotated tags `vX.Y.Z` on `main`. Other tags (`test-*`,
-  `mac-test-*`) are ignored.
-- Untagged commits on `main` are pre-releases `X.Y.Z-alpha.N`, where N counts
-  the commits since the last release tag (after `v0.1.0`: `0.1.1-alpha.1`,
-  `0.1.1-alpha.2`, ...). Branch builds get a branch label, such as
-  `0.1.1-rce-180-versioning.1`.
+- Every push (squash merge) to `main` is a release: CI creates the annotated
+  tag `vX.Y.Z` on the merge commit and publishes it. There are no pre-releases
+  from `main`; legacy `test-*` and `mac-test-*` tags are ignored.
+- `main` computes the plain next version `X.Y.Z` (after `v0.1.0`: `0.1.1`,
+  then `0.1.2`, ...), from the highest Conventional Commit increment since the
+  last `v*` tag. A tagged commit computes exactly its tag. Branch builds get a
+  branch label, such as `0.1.1-rce-180-versioning.1`, so they never collide
+  with a release.
 - While the version is `0.y.z`, a breaking change bumps the minor version and
   every other change bumps the patch. Going to `1.0.0` is a deliberate decision
   by the project owner, not something a commit can trigger; it also switches
@@ -76,7 +87,7 @@ dotnet tool restore            # GitVersion.Tool, pinned in .config/dotnet-tools
 ```
 
 GitVersion.Tool 6.8.2 runs on the .NET 10 SDK as is. git-cliff 2.14.2 is the
-pinned changelog generator (`cargo install git-cliff --version 2.14.2 --locked`
+pinned release-notes generator (`cargo install git-cliff --version 2.14.2 --locked`
 or a [release binary](https://github.com/orhun/git-cliff/releases/tag/v2.14.2));
 CI downloads the same version and checks its SHA-256.
 
@@ -89,36 +100,49 @@ corner of the HUD) and `export_presets.cfg` (`application/short_version` and
 `0.0.0`); never commit stamped files. After a local stamp, run
 `tools/version.sh --restore`.
 
-### Changelog
+### Release notes
 
-`CHANGELOG.md` follows [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/)
-and is generated by git-cliff from `cliff.toml`; do not edit it by hand.
+There is no committed changelog. Release notes are generated by git-cliff from
+`cliff.toml` (Conventional Commits grouped Keep a Changelog style) and attached
+to each GitHub Release by CI.
 
 ```bash
-git cliff --unreleased                  # preview what the next release contains
-git cliff --tag vX.Y.Z -o CHANGELOG.md  # regenerate for release vX.Y.Z
+git cliff --unreleased --strip all                  # preview what the next release contains
+git cliff --unreleased --tag vX.Y.Z --strip all     # ... titled as the next version
+git cliff --latest --strip all                      # notes for the newest tag
 ```
 
-### Cutting a release
+### How a release happens
 
-Only the maintainer (or the merger agent) tags; implementers never tag.
+Nobody tags by hand. When a PR is squash-merged, the `Mac test build` workflow
+runs on the merge commit:
 
-1. Decide the version: `dotnet tool run dotnet-gitversion /showvariable MajorMinorPatch`
-   on `main` shows the next one.
-2. Regenerate the changelog with `git cliff --tag vX.Y.Z -o CHANGELOG.md` in a
-   `chore(release): vX.Y.Z` PR, and merge it to `main`.
-3. Tag the merge commit and push the tag:
+1. `build` (Linux) runs the check gate, stamps the version from GitVersion (the
+   plain `X.Y.Z`, the same number that gets tagged) and exports the unsigned
+   Mac app. There is no macOS signing or smoke-test job.
+2. `release` refuses if `vX.Y.Z` already points at another commit or a release
+   for it exists, creates the annotated tag `vX.Y.Z` on the commit, pushes it,
+   and publishes the GitHub Release with the git-cliff notes and the unsigned
+   `Bronze-Tee-macOS.zip`. Tagging and publishing share one job because tags
+   pushed with `GITHUB_TOKEN` do not trigger other workflows.
 
-   ```bash
-   git switch main && git pull
-   git tag -a vX.Y.Z -m "vX.Y.Z"
-   git push origin vX.Y.Z
-   ```
+Pushes to `main` are serialized (one `release-main` concurrency group, never
+cancelled mid-run). If merges queue up, GitHub drops the older waiting run; the
+newest one releases and its notes cover every commit since the last tag. The
+release job only releases when its commit is still the tip of `main`, so a
+stale re-run of an older merge does nothing. If a newer push lands during a
+run's build, that older run skips by design; if the newer run then fails, the
+older merge stays unreleased until the next green merge (re-running the old
+run is a no-op).
 
-4. The `Mac test build` workflow builds, signs and tests the app, checks that
-   the tag matches the GitVersion result, and publishes a GitHub Release for
-   the tag with notes from `git cliff --current --strip all` and
-   `Bronze-Tee-macOS.zip` attached.
+A failed release job is recovered by re-running that job before the next merge:
+it reuses its own tag. This also fixes an orphan tag left by a failed publish.
+After the next merge lands, re-run is a no-op, so fix forward instead.
+
+The commit type picks the bump (see above), so choose the PR title with care:
+it is the release. Going to `1.0.0` still needs an explicit decision by the
+project owner. Hotfixes are normal `fix:` PRs and release on merge. A
+hand-pushed tag publishes nothing; it is not a release path.
 
 Never move or delete a published tag; fix forward with a new patch release.
 
