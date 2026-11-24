@@ -24,7 +24,7 @@ replace `/Applications/Bronze Tee.app`, keeping a backup until the swap works):
 - Build from source: `tools/utils/build-macos.sh` (needs Godot 4.7.2 .NET, the
   .NET 10 SDK and the Godot export templates; it lists what is missing). It
   fast-forwards a clean `main` (`--no-pull` builds the current checkout, `--check`
-  also runs `./tools/check.sh`), stamps the version, exports, ad-hoc signs,
+  also runs `./tools/check.sh`, which needs `timeout`: `brew install coreutils`), stamps the version, exports, ad-hoc signs,
   smoke-tests, installs, and always restores the stamped files.
 
 The workflow uses Godot 4.7.2 .NET and .NET 10. Update the workflow, export
@@ -130,7 +130,10 @@ Pushes to `main` are serialized (one `release-main` concurrency group, never
 cancelled mid-run). If merges queue up, GitHub drops the older waiting run; the
 newest one releases and its notes cover every commit since the last tag. The
 release job only releases when its commit is still the tip of `main`, so a
-stale re-run of an older merge does nothing.
+stale re-run of an older merge does nothing. If a newer push lands during a
+run's build, that older run skips by design; if the newer run then fails, the
+older merge stays unreleased until the next green merge (re-running the old
+run is a no-op).
 
 A failed release job is recovered by re-running that job before the next merge:
 it reuses its own tag. This also fixes an orphan tag left by a failed publish.

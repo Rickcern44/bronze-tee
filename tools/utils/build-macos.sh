@@ -55,27 +55,34 @@ trap cleanup EXIT
 
 # --- Dependencies: collect everything that is missing, then report once. ---
 missing=()
-godot="${GODOT_BIN:-}"
-if [ -z "$godot" ]; then
-  for candidate in "$(command -v godot || true)" \
-      /Applications/Godot_mono.app/Contents/MacOS/Godot \
-      "$HOME/Applications/Godot_mono.app/Contents/MacOS/Godot" \
-      /Applications/Godot.app/Contents/MacOS/Godot \
-      "$HOME/Applications/Godot.app/Contents/MacOS/Godot"; do
-    if [ -n "$candidate" ] && [ -x "$candidate" ]; then
-      godot="$candidate"
-      break
-    fi
-  done
-fi
-if [ -z "$godot" ] || [ ! -x "$godot" ]; then
-  missing+=("Godot $godot_version .NET: install it, or set GODOT_BIN to its executable")
+# Take the first Godot that is 4.7.2 .NET: GODOT_BIN alone if set, otherwise
+# `godot` on PATH and the usual app bundles. A non-.NET Godot earlier in the
+# list must not shadow a correct one.
+godot=''
+found=()
+if [ -n "${GODOT_BIN:-}" ]; then
+  candidates=("$GODOT_BIN")
 else
-  version=$("$godot" --version 2>/dev/null | tail -n 1 || true)
+  candidates=("$(command -v godot || true)" \
+    /Applications/Godot_mono.app/Contents/MacOS/Godot \
+    "$HOME/Applications/Godot_mono.app/Contents/MacOS/Godot" \
+    /Applications/Godot.app/Contents/MacOS/Godot \
+    "$HOME/Applications/Godot.app/Contents/MacOS/Godot")
+fi
+for candidate in "${candidates[@]}"; do
+  if [ -z "$candidate" ] || [ ! -x "$candidate" ]; then continue; fi
+  version=$("$candidate" --version 2>/dev/null | tail -n 1 || true)
   case "$version" in
-    "$godot_version".*.mono.*) ;;
-    *) missing+=("Godot $godot_version .NET: $godot reports '${version:-nothing}' (need $godot_version.*.mono.*)") ;;
+    "$godot_version".*.mono.*) godot="$candidate"; break ;;
+    *) found+=("$candidate (${version:-no version})") ;;
   esac
+done
+if [ -z "$godot" ]; then
+  if [ "${#found[@]}" -gt 0 ]; then
+    missing+=("Godot $godot_version .NET (need $godot_version.*.mono.*); found only: ${found[*]}")
+  else
+    missing+=("Godot $godot_version .NET: install it, or set GODOT_BIN to its executable")
+  fi
 fi
 if ! command -v dotnet >/dev/null || [ "$(dotnet --version 2>/dev/null | cut -d. -f1)" != 10 ]; then
   missing+=('.NET 10 SDK: install it from https://dotnet.microsoft.com/download/dotnet/10.0')
@@ -84,7 +91,10 @@ templates="$HOME/Library/Application Support/Godot/export_templates/$godot_versi
 if [ ! -d "$templates" ]; then
   missing+=("Godot $godot_version .NET export templates: in Godot use Editor > Manage Export Templates (expected $templates)")
 fi
-for tool in python3 git codesign ditto; do
+if [ "$check" -eq 1 ] && ! command -v timeout >/dev/null && ! command -v gtimeout >/dev/null; then
+  missing+=('timeout (needed by --check): brew install coreutils, or run without --check')
+fi
+for tool in python3 git codesign ditto pgrep; do
   command -v "$tool" >/dev/null || missing+=("$tool: not found on PATH")
 done
 if [ "${#missing[@]}" -gt 0 ]; then
@@ -111,7 +121,7 @@ if ! git diff --quiet HEAD -- project.godot export_presets.cfg; then
 fi
 
 # An app that is running cannot be replaced; check before the long build.
-if /usr/bin/osascript -e 'application id "com.cernylabs.bronzetee" is running' | grep -qx true; then
+if pgrep -f '/Bronze Tee.app/Contents/MacOS/' >/dev/null; then
   echo 'Quit Bronze Tee, then run this script again.' >&2
   exit 1
 fi
@@ -122,7 +132,17 @@ fi
 
 dotnet tool restore
 if [ "$check" -eq 1 ]; then
-  ./tools/check.sh
+  # check.sh calls `godot` and `timeout` by name; put shims for the Godot we
+  # found (GODOT_BIN, an app bundle) and for gtimeout (Homebrew coreutils) first
+  # on PATH, for this run only.
+  shims="$work/shims"
+  mkdir -p "$shims"
+  printf '#!/bin/sh\nexec "%s" "$@"\n' "$godot" > "$shims/godot"
+  if ! command -v timeout >/dev/null; then
+    printf '#!/bin/sh\nexec gtimeout "$@"\n' > "$shims/timeout"
+  fi
+  chmod +x "$shims"/*
+  PATH="$shims:$PATH" ./tools/check.sh
 fi
 
 # --- Stamp, import, export. The trap restores the stamped files. ---
@@ -150,7 +170,11 @@ built="$work/unpacked/Bronze Tee.app"
 [ -f "$built/Contents/MacOS/Bronze Tee" ] || { echo 'The app is missing from the export.' >&2; exit 1; }
 codesign --force --deep --sign - "$built"
 codesign --verify --deep --strict "$built"
-"$built/Contents/MacOS/Bronze Tee" --headless --quit-after 5 > "$work/game.log" 2>&1
+if ! "$built/Contents/MacOS/Bronze Tee" --headless --quit-after 5 > "$work/game.log" 2>&1; then
+  head -80 "$work/game.log" >&2
+  echo 'The built game failed to run.' >&2
+  exit 1
+fi
 if grep -Eq '(^ERROR:|SCRIPT ERROR|Unhandled exception)' "$work/game.log"; then
   head -80 "$work/game.log" >&2
   echo 'The built game reported an error.' >&2

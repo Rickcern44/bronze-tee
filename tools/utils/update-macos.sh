@@ -28,7 +28,7 @@ if ! command -v python3 >/dev/null; then
   echo 'Python 3 is required. Install it, then run this script again.' >&2
   exit 1
 fi
-if /usr/bin/osascript -e 'application id "com.cernylabs.bronzetee" is running' | grep -qx true; then
+if pgrep -f '/Bronze Tee.app/Contents/MacOS/' >/dev/null; then
   echo 'Quit Bronze Tee, then run this script again.' >&2
   exit 1
 fi
