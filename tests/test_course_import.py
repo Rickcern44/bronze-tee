@@ -154,6 +154,56 @@ class CourseImportTests(unittest.TestCase):
             self.assertEqual(first["holes"],1)
             self.assertEqual(second["warnings"],[])
 
+    def test_nodes_and_multipolygon_relations_become_features(self):
+        # Pins are tagged nodes; fairways are often multipolygon relations whose
+        # outer ring is split across member ways, with an inner ring cut-out.
+        osm={"elements":[
+            {"type":"node","id":1,"lon":0.0,"lat":0.0},{"type":"node","id":2,"lon":0.0,"lat":1.0},
+            {"type":"node","id":3,"lon":1.0,"lat":1.0},{"type":"node","id":4,"lon":1.0,"lat":0.0},
+            {"type":"node","id":5,"lon":.2,"lat":.2},{"type":"node","id":6,"lon":.4,"lat":.2},{"type":"node","id":7,"lon":.4,"lat":.4},
+            {"type":"node","id":9,"lon":-81.5,"lat":41.5,"tags":{"golf":"pin"}},
+            {"type":"way","id":20,"nodes":[1,2,3]},{"type":"way","id":21,"nodes":[1,4,3]},
+            {"type":"way","id":22,"nodes":[5,6,7,5]},
+            {"type":"relation","id":30,"tags":{"golf":"fairway","type":"multipolygon"},"members":[
+                {"type":"way","ref":20,"role":"outer"},{"type":"way","ref":21,"role":"outer"},{"type":"way","ref":22,"role":"inner"}]},
+        ]}
+        features=ci.elements_to_features(osm)
+        self.assertEqual({f["type"] for f in features},{"pin","fairway"})
+        pin=next(f for f in features if f["type"]=="pin"); self.assertEqual(pin["coords"],[[-81.5,41.5]])
+        fairway=next(f for f in features if f["type"]=="fairway")
+        ring=fairway["coords"]; self.assertEqual(ring[0],ring[-1]); self.assertEqual(len(ring),5)
+        self.assertEqual(len(fairway["inner"]),1)
+
+    def test_crop_is_derived_from_the_hole_and_may_be_overridden(self):
+        straight=np.array([[0.,0.],[0.,-100.]])
+        self.assertEqual(ci._crop_bounds({"number":1},straight,[],[],np.array([0.,-100.])),(-70.,70.,-140.,40.))
+        # A dogleg that swings 129 m right and a blue tee 90 m back must be inside the crop.
+        dogleg=np.array([[0.,0.],[129.,-137.],[113.,-251.],[0.,-340.]])
+        minx,maxx,minz,maxz=ci._crop_bounds({"number":4},dogleg,[np.array([0.,90.])],[],np.array([0.,-340.]))
+        self.assertEqual((minx,maxx,minz,maxz),(-70.,170.,-380.,130.))
+        forced=ci._crop_bounds({"number":4,"crop":[-50,50,-200,20]},dogleg,[],[],np.array([0.,-340.]))
+        self.assertEqual(forced,(-50.,50.,-200.,20.))
+        with self.assertRaisesRegex(ValueError,"crop must be"):
+            ci._crop_bounds({"number":4,"crop":[50,-50,-200,20]},dogleg,[],[],np.array([0.,-340.]))
+
+    def test_blue_tee_is_derived_from_scorecard_yardage(self):
+        local=np.array([[0.,0.],[0.,-100.],[0.,-300.]])
+        white,blue=ci._tee_pads([np.array([1.,1.]),np.array([5.,-60.])],local,350,380)
+        np.testing.assert_allclose(white,[1,1])  # the forward pad is not the white tee
+        np.testing.assert_allclose(blue,[1,1+30*0.9144])
+        self.assertIsNone(ci._tee_pads([],local,350,0)[1])
+        np.testing.assert_allclose(ci._tee_pads([],local,350,0)[0],[0,0])
+
+    def test_cart_path_lines_are_painted_as_a_strip(self):
+        xx,zz=np.meshgrid(np.arange(-5,5.01,.5),np.arange(0,-20.01,-.5))
+        line=np.array([[0.,0.],[0.,-20.]]); path=np.array([[-3.,-1.],[3.,-1.]])
+        surface=ci._raster_surfaces(1,{},[("cartpath",path,[])],line,np.zeros(2),np.array([0.,1.]),np.array([1.,0.]),xx,zz)
+        # forward=+y in this frame so local z = -y; the strip lies on local z=1.
+        painted=surface==ci.SURFACE["path"]
+        self.assertTrue(painted.any())
+        self.assertLessEqual(np.ptp(zz[painted]),2*ci.PATH_HALF_WIDTH+.5)
+        self.assertGreater(np.ptp(xx[painted]),5)
+
 
 if __name__=="__main__":
     unittest.main()

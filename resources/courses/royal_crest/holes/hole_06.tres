@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="HoleDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/course/hole_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+number = 6
+display_name = "Hole 6"
+par = 4
+yards = 417.0
+tee_position = Vector2(-1.645, 1.944)
+tee_ellipse = Vector4(-1.645, 1.944, 5.348, 8.000)
+cup_position = Vector2(0.000, -378.802)
+blue_tee_offset = Vector2(-0.444, 13.709)
+black_tee_offset = Vector2(0.000, 0.000)
+blue_tee_yards = 432.0
+black_tee_yards = 0.0
+green_radii = Vector2(15.163, 14.285)
+fairway_centerline = Array[Vector2]([Vector2(0.000, 0.000), Vector2(7.736, -239.104), Vector2(0.000, -378.802)])
+elevation_file = "res://resources/courses/royal_crest/terrain/hole_06.f32"
+elevation_origin = Vector2(-70.000, 60.000)
+elevation_spacing = 2.0
+elevation_dimensions = Vector2i(71, 251)
+origin_latlon = Vector2(-81.885, 41.320)
+bearing_deg = 180.0
+surface_map_file = "res://resources/courses/royal_crest/terrain/hole_06.srf"
+surface_map_origin = Vector2(-70.000, 60.000)
+surface_map_spacing = 0.5
+surface_map_dimensions = Vector2i(281, 1001)

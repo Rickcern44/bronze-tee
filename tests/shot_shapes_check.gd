@@ -26,7 +26,7 @@ func take_shot(shape: int, shot_type: int) -> Dictionary:
 	return {"landing": landing, "peak": peak}
 
 func check() -> void:
-	game = load("res://scenes/main.tscn").instantiate()
+	game = load("res://tests/legacy_course.gd").game()
 	root.add_child(game)
 	await process_frame
 	game.tree_obstacles.clear()

@@ -28,7 +28,7 @@ func play_hole(game: Node) -> void:
 		print("hole ",game.hole_index+1," shot ",game.strokes," left ",game._distance_to_cup(game.ball_position))
 	assert(game.hole_complete, "hole not completed")
 func check() -> void:
-	var game = load("res://scenes/main.tscn").instantiate()
+	var game = load("res://tests/legacy_course.gd").game()
 	root.add_child(game)
 	await process_frame
 	game.wind_index = 0

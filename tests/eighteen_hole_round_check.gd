@@ -5,7 +5,7 @@ func _initialize() -> void:
 
 func check() -> void:
 	var started := Time.get_ticks_usec()
-	var game = load("res://scenes/main.tscn").instantiate()
+	var game = load("res://tests/legacy_course.gd").game()
 	root.add_child(game)
 	await process_frame
 	var initial_load_ms := float(Time.get_ticks_usec() - started) / 1000.0

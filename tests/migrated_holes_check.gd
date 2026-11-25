@@ -19,7 +19,7 @@ func original_height(hole: int, x: float, z: float, cup_z: float) -> float:
 	return lerpf(fairway, green, green_weight)
 
 func check() -> void:
-	var game = load("res://scenes/main.tscn").instantiate()
+	var game = load("res://tests/legacy_course.gd").game()
 	root.add_child(game)
 	await process_frame
 	var expected_elevations := [-1.72249, -2.52441, -0.34885]

@@ -35,7 +35,7 @@ func check() -> void:
 	trail._process(0.7)
 	assert(is_equal_approx(trail._rest_blend, 1.0) and BallTrail.REST_ALPHA == 0.0)
 	trail.queue_free()
-	var game = load("res://scenes/main.tscn").instantiate()
+	var game = load("res://tests/legacy_course.gd").game()
 	root.add_child(game)
 	await process_frame
 	game.ball_position = game.CUP + Vector3(0, 0, 5)

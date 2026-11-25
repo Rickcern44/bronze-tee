@@ -10,7 +10,7 @@ func press_t(game: Node) -> void:
 	game._input(event)
 
 func check() -> void:
-	var game = load("res://scenes/main.tscn").instantiate()
+	var game = load("res://tests/legacy_course.gd").game()
 	root.add_child(game)
 	await process_frame
 	for hole in range(game.HOLES.size()):

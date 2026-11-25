@@ -71,6 +71,8 @@ const FORWARD_TO_HIT = 25.0
 const SWIPE_DEADZONE_DEGREES = 2.0
 const MAX_SWIPE_DEGREES = 12.0
 var COURSE: Resource
+## Set before the node enters the tree to load this course instead of the project default (tests pin the legacy course this way). A --course= argument still wins.
+var course_path_override := ""
 # The course resource controls the round order.
 var HOLES: Array = []
 var active_hole: Resource
@@ -197,7 +199,7 @@ func _ready() -> void:
 	_update_hud()
 
 func _load_active_course() -> Resource:
-	var course_path := str(ProjectSettings.get_setting("bronze_tee/course/default", "res://resources/courses/royal_crest_legacy/course.tres"))
+	var course_path := course_path_override if not course_path_override.is_empty() else str(ProjectSettings.get_setting("bronze_tee/course/default", "res://resources/courses/royal_crest/course.tres"))
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--course="):
 			course_path = arg.trim_prefix("--course=").strip_edges()
@@ -344,25 +346,36 @@ func _load_surface_map(path: String, dimensions: Vector2i, spacing: float) -> Di
 	_surface_map_cache[path] = surface
 	return surface
 
+# White is always available; blue needs scorecard yardage, and black (a fictional
+# extra) needs blue too. A hole with white and blue only (imported real courses)
+# offers two tees; the remembered tee_index is clamped to what the hole offers.
+func _tee_count() -> int:
+	if active_hole.blue_tee_yards <= 0.0: return 1
+	return 3 if active_hole.black_tee_yards > 0.0 else 2
+
+func _effective_tee_index() -> int:
+	return mini(tee_index, _tee_count() - 1)
+
 func _selected_tee_offset() -> Vector2:
-	if tee_index == 1 and active_hole.blue_tee_yards > 0.0: return active_hole.blue_tee_offset
-	if tee_index == 2 and active_hole.black_tee_yards > 0.0: return active_hole.black_tee_offset
+	match _effective_tee_index():
+		1: return active_hole.blue_tee_offset
+		2: return active_hole.black_tee_offset
 	return Vector2.ZERO
 
 func _selected_tee_name() -> String:
-	if active_hole.blue_tee_yards <= 0.0 or active_hole.black_tee_yards <= 0.0: return "WHITE"
-	return TEE_NAMES[tee_index]
+	return TEE_NAMES[_effective_tee_index()]
 
 func _selected_tee_yards() -> float:
-	if tee_index == 1 and active_hole.blue_tee_yards > 0.0: return active_hole.blue_tee_yards
-	if tee_index == 2 and active_hole.black_tee_yards > 0.0: return active_hole.black_tee_yards
+	match _effective_tee_index():
+		1: return active_hole.blue_tee_yards
+		2: return active_hole.black_tee_yards
 	return active_hole.yards
 
 func _tee_ellipses() -> Array[Vector4]:
 	var boxes: Array[Vector4] = [TEE_BOX]
 	if active_hole.blue_tee_yards > 0.0:
 		boxes.append(TEE_BOX + Vector4(active_hole.blue_tee_offset.x, active_hole.blue_tee_offset.y, 0, 0))
-	if active_hole.black_tee_yards > 0.0:
+	if _tee_count() > 2:
 		boxes.append(TEE_BOX + Vector4(active_hole.black_tee_offset.x, active_hole.black_tee_offset.y, 0, 0))
 	return boxes
 
@@ -965,10 +978,10 @@ func _input(event: InputEvent) -> void:
 				else:
 					_reset_ball()
 			KEY_T:
-				if not in_motion and not swing_active and not hole_complete and strokes == 0 and active_hole.blue_tee_yards > 0.0 and active_hole.black_tee_yards > 0.0:
+				if not in_motion and not swing_active and not hole_complete and strokes == 0 and _tee_count() > 1:
 					var previous_wind_index := wind_index
 					var previous_wind_direction := wind_direction
-					tee_index = (tee_index + 1) % TEE_NAMES.size()
+					tee_index = (_effective_tee_index() + 1) % _tee_count()
 					_load_hole(hole_index)
 					wind_index = previous_wind_index
 					wind_direction = previous_wind_direction

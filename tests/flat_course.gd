@@ -1,5 +1,8 @@
 extends "res://scripts/main.gd"
 
+# These calibration surfaces assume the four-hole legacy fixture, not the project default course.
+func _init() -> void: course_path_override = "res://resources/courses/royal_crest_legacy/course.tres"
+
 # Neutral calibration surface: level fairway, no hazards, trees, or cup.
 func _ground_height(_x: float, _z: float) -> float: return 0.0
 func _on_green(_pos: Vector3) -> bool: return false

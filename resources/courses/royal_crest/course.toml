@@ -1,0 +1,120 @@
+id = "royal_crest"
+name = "Royal Crest"
+kind = "real"
+
+[real]
+bbox = [-81.89, 41.31, -81.87, 41.325]
+
+[scorecard]
+source = "https://stymie.golf/golf-courses/ohio/lorain-county/columbia-station/royal-crest-golf-club"
+tees = ["white", "blue"]
+
+[[holes]]
+number = 1
+par = 4
+handicap = 11
+yards = { white = 353, blue = 382 }
+
+[[holes]]
+number = 2
+par = 3
+handicap = 7
+yards = { white = 207, blue = 224 }
+
+[[holes]]
+number = 3
+par = 4
+handicap = 13
+yards = { white = 345, blue = 394 }
+
+[[holes]]
+number = 4
+par = 5
+handicap = 3
+# The mapped line (489 yd) cuts the dogleg short of the 544 yd scorecard; the scorecard stays the reference.
+accept_length_mismatch = true
+yards = { white = 544, blue = 553 }
+
+[[holes]]
+number = 5
+par = 3
+handicap = 15
+yards = { white = 153, blue = 164 }
+
+[[holes]]
+number = 6
+par = 4
+handicap = 1
+yards = { white = 417, blue = 432 }
+
+[[holes]]
+number = 7
+par = 4
+handicap = 9
+yards = { white = 344, blue = 442 }
+
+[[holes]]
+number = 8
+par = 4
+handicap = 17
+yards = { white = 300, blue = 313 }
+
+[[holes]]
+number = 9
+par = 4
+handicap = 5
+yards = { white = 396, blue = 421 }
+
+[[holes]]
+number = 10
+par = 4
+handicap = 18
+yards = { white = 338, blue = 398 }
+
+[[holes]]
+number = 11
+par = 4
+handicap = 12
+yards = { white = 321, blue = 345 }
+
+[[holes]]
+number = 12
+par = 3
+handicap = 8
+yards = { white = 204, blue = 229 }
+
+[[holes]]
+number = 13
+par = 4
+handicap = 14
+yards = { white = 318, blue = 346 }
+
+[[holes]]
+number = 14
+par = 5
+handicap = 2
+yards = { white = 532, blue = 544 }
+
+[[holes]]
+number = 15
+par = 4
+handicap = 4
+yards = { white = 433, blue = 445 }
+
+[[holes]]
+number = 16
+par = 5
+handicap = 6
+yards = { white = 479, blue = 517 }
+
+[[holes]]
+number = 17
+par = 3
+handicap = 16
+yards = { white = 172, blue = 215 }
+
+[[holes]]
+number = 18
+par = 4
+handicap = 10
+yards = { white = 349, blue = 382 }

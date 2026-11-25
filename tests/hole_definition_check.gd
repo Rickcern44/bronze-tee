@@ -7,7 +7,7 @@ func check() -> void:
 	var fixture = load("res://tests/fixtures/data_driven_hole.tres")
 	var course = load("res://resources/courses/royal_crest_legacy/course.tres")
 	course.holes.insert(1, fixture)
-	var game = load("res://scenes/main.tscn").instantiate()
+	var game = load("res://tests/legacy_course.gd").game()
 	root.add_child(game)
 	await process_frame
 	course.holes.remove_at(1) # The game has already built its ordered hole list.

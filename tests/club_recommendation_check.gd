@@ -50,7 +50,7 @@ func check() -> void:
 	assert(game.recommended_club == 0, "driver is closest when beyond range")
 	game.queue_free()
 	await process_frame
-	game = load("res://scenes/main.tscn").instantiate()
+	game = load("res://tests/legacy_course.gd").game()
 	root.add_child(game)
 	await process_frame
 	game.ball_position = game.CUP + Vector3(0, game._ground_height(0, game.CUP.z) + game.BALL_RADIUS, 5)

@@ -5,7 +5,7 @@ func _initialize() -> void:
 	call_deferred("check")
 
 func check() -> void:
-	var game = load("res://scenes/main.tscn").instantiate()
+	var game = load("res://tests/legacy_course.gd").game()
 	root.add_child(game)
 	await process_frame
 	for action in ["restart", "next_hole"]:

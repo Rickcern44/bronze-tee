@@ -30,7 +30,7 @@ func move_to(game, pos: Vector3) -> void:
 	game.wind_index = 0
 
 func check() -> void:
-	var game = load("res://scenes/main.tscn").instantiate()
+	var game = load("res://tests/legacy_course.gd").game()
 	root.add_child(game)
 	await process_frame
 	game.HOLES.append(load(FIXTURE))

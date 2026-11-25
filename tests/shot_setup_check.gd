@@ -12,7 +12,7 @@ func place(game: Node, x: float, z: float) -> void:
 	game._select_club_for_next_shot()
 	game._update_hud()
 func check() -> void:
-	var game = load("res://scenes/main.tscn").instantiate()
+	var game = load("res://tests/legacy_course.gd").game()
 	root.add_child(game)
 	await process_frame
 	game._reset_ball()
