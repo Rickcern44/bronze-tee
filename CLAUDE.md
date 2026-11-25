@@ -31,6 +31,8 @@ Playtest scenarios use a virtual display and live in `tests/playtest/`:
 ./tools/playtest.sh blue_flags
 ```
 
+CI runs every `tests/playtest/*_playtest.gd` scenario on PRs (`.github/workflows/playtest.yml`) and uploads `playtest-output/` as an artifact; run the relevant scenarios locally before pushing.
+
 To produce a full game-team playtest report with the global harness:
 
 ```bash

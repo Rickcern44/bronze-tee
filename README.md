@@ -24,7 +24,7 @@ replace `/Applications/Bronze Tee.app`, keeping a backup until the swap works):
 - Build from source: `tools/utils/build-macos.sh` (needs Godot 4.7.2 .NET, the
   .NET 10 SDK and the Godot export templates; it lists what is missing). It
   fast-forwards a clean `main` (`--no-pull` builds the current checkout, `--check`
-  also runs `./tools/check.sh`, which needs `timeout`: `brew install coreutils`), stamps the version, exports, ad-hoc signs,
+  also runs `./tools/check.sh`, which needs `timeout`: `brew install coreutils`; it does not run the playtests, which run in CI and with `./tools/playtest.sh <slug>`), stamps the version, exports, ad-hoc signs,
   smoke-tests, installs, and always restores the stamped files.
 
 The workflow uses Godot 4.7.2 .NET and .NET 10. Update the workflow, export
@@ -263,3 +263,5 @@ Run `./tools/check.sh` before any change is done. It builds the Godot project wi
 Run `./tools/install-hooks.sh` once per clone. It writes `.git/hooks/pre-commit`, so each commit runs the gate, and `.git/hooks/commit-msg`, which checks the commit message (see [Commit convention](#commit-convention)).
 
 Run the normal-game playtest with `./tools/playtest.sh normal_game`. It runs the playtest under Xvfb with Godot config, data and cache kept in a temp directory, scans the output for error lines, and prints `PLAYTEST PASSED`. Screenshots go to `playtest-output/normal_game/`.
+
+Every scenario in `tests/playtest/*_playtest.gd` (currently `normal_game`, `blue_flags` and `surface_map`) also runs in CI: `.github/workflows/playtest.yml` runs `./tools/playtest.sh <slug>` for each one on pull requests that touch `scripts/`, `shaders/`, `scenes/`, `tests/`, `dotnet/`, `assets/` or the workflow itself (and on manual dispatch), so a PR that breaks a scenario fails CI. New `*_playtest.gd` files are picked up automatically. Screenshots are uploaded as the `playtest-output` build artifact, also when a scenario fails.
