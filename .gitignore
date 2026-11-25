@@ -12,3 +12,8 @@ __pycache__/
 artifacts/*.import
 # infra-dev release verification reports
 .release/
+
+# Importer working files (the OSM snapshot and build report are recreated by fetch/build)
+resources/courses/*/fetched.json
+resources/courses/*/build_report.json
+build/

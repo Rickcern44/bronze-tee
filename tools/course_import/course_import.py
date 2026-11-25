@@ -26,6 +26,11 @@ OSM_TAGS = {"hole", "tee", "green", "pin", "fairway", "bunker", "water_hazard", 
 SURFACE = {"deep_rough":0,"second_cut":1,"first_cut":2,"fairway":3,"green":4,"collar":5,"tee":6,"path":7,"water":8,"bunker":9}
 SURFACE_SPACING=0.5 # metres between .srf samples
 SURFACE_DISTANCE_UNIT=0.1 # metres per channel-1 step; 255 steps clamp at 25.5 m
+CROP_MARGIN=40.0 # metres of terrain kept around the mapped hole line, tees and green
+CROP_SNAP=10.0 # crop edges snap outward to this grid so origins stay round numbers
+MIN_HALF_WIDTH=70.0 # every crop is at least 140 m wide and reaches 40 m behind the tee
+PATH_HALF_WIDTH=1.25 # cart paths are mapped as lines; paint a 2.5 m wide strip
+YARD=0.9144
 UA = "BronzeTeeCourseImport/1.0 (course data import; contact project maintainers)"
 
 def request(url: str, payload: bytes | None = None) -> bytes:
@@ -89,16 +94,51 @@ def osm_query(bbox: tuple[float,float,float,float]) -> dict:
         raw=request("https://api.openstreetmap.org/api/0.6/map.json?bbox="+urllib.parse.quote(f"{a},{b},{c},{d}",safe=","))
     return json.loads(raw)
 
+def _stitch_rings(ways: list[list[tuple[float,float]]]) -> list[list[list[float]]]:
+    """Join open member ways end to end into closed rings (OSM multipolygon outers/inners)."""
+    pending=[list(w) for w in ways if len(w)>=2]; rings=[]
+    while pending:
+        ring=pending.pop(0)
+        while ring[0]!=ring[-1]:
+            for i,w in enumerate(pending):
+                if w[0]==ring[-1]: ring+=w[1:]
+                elif w[-1]==ring[-1]: ring+=w[::-1][1:]
+                elif w[-1]==ring[0]: ring=w[:-1]+ring
+                elif w[0]==ring[0]: ring=w[::-1][:-1]+ring
+                else: continue
+                pending.pop(i); break
+            else: break
+        if ring[0]==ring[-1] and len(ring)>=4: rings.append([list(p) for p in ring])
+    return rings
+
 def elements_to_features(osm: dict) -> list[dict]:
-    nodes={e["id"]:(e["lon"],e["lat"]) for e in osm.get("elements",[]) if e["type"]=="node"}
+    elements=osm.get("elements",[])
+    nodes={e["id"]:(e["lon"],e["lat"]) for e in elements if e["type"]=="node"}
+    way_coords={}
+    for e in elements:
+        if e["type"]=="way":
+            way_coords[e["id"]]=[(g["lon"],g["lat"]) for g in e["geometry"]] if e.get("geometry") else [nodes[n] for n in e.get("nodes",[]) if n in nodes]
     out=[]
-    for e in osm.get("elements",[]):
+    for e in elements:
         tags=e.get("tags",{}); typ=tags.get("golf")
         if typ not in OSM_TAGS: continue
-        coords=e.get("geometry") or ([nodes[n] for n in e.get("nodes",[]) if n in nodes])
+        inner=[]
+        if e["type"]=="node" and "lon" in e: coords=[(e["lon"],e["lat"])]
+        elif e["type"]=="relation":
+            # Multipolygon: outer ring is the feature polygon; inner rings are cut-outs.
+            members=[m for m in e.get("members",[]) if m["type"]=="way" and m["ref"] in way_coords]
+            outers=_stitch_rings([way_coords[m["ref"]] for m in members if m.get("role")!="inner"])
+            if not outers: continue
+            inner=_stitch_rings([way_coords[m["ref"]] for m in members if m.get("role")=="inner"])
+            coords=max(outers,key=len)
+        else:
+            coords=e.get("geometry") or ([nodes[n] for n in e.get("nodes",[]) if n in nodes])
+            if e["type"]=="way" and e.get("geometry"): coords=[(g["lon"],g["lat"]) for g in coords]
         if not coords and e.get("center"): coords=[(e["center"]["lon"],e["center"]["lat"])]
         if not coords: continue
-        out.append({"osm_type":e["type"],"osm_id":e["id"],"type":typ,"ref":tags.get("ref"),"name":tags.get("name"),"coords":[list(p) for p in coords],"tags":tags})
+        feature={"osm_type":e["type"],"osm_id":e["id"],"type":typ,"ref":tags.get("ref"),"name":tags.get("name"),"coords":[list(p) for p in coords],"tags":tags}
+        if inner: feature["inner"]=inner
+        out.append(feature)
     return out
 
 def fetch(spec: dict, course_dir: Path) -> dict:
@@ -143,11 +183,48 @@ def _assign(features:list[dict], holes:list[dict], tr:Transformer)->dict[int,lis
         pts=_line_coords(feature,tr)
         if not len(pts): continue
         if feature["type"]=="pin": owner=min(lines,key=lambda n:np.linalg.norm(pts[0]-lines[n][-1]))
-        elif feature["type"]=="green": owner=min(lines,key=lambda n:np.linalg.norm(pts.mean(axis=0)-lines[n][-1]))
+        elif feature["type"]=="green":
+            # A green belongs to the hole whose pin it contains; a green without a pin
+            # (practice green) is nobody's and renders as fairway on every hole.
+            pins=[(n,_line_coords(f,tr)[0]) for f in features if f["type"]=="pin" for n in [min(lines,key=lambda m:np.linalg.norm(_line_coords(f,tr)[0]-lines[m][-1]))]]
+            owners=[n for n,pin in pins if len(pts)>=3 and _point_in_poly(pin,pts)]
+            if not owners: continue
+            owner=owners[0]
         elif feature["type"]=="tee": owner=min(lines,key=lambda n:np.linalg.norm(pts.mean(axis=0)-lines[n][0]))
         else: owner=min(lines,key=lambda n:min(np.linalg.norm(p-lines[n],axis=1).min() for p in pts[::max(1,len(pts)//20)]))
         assigned[owner].append((feature["type"],pts))
     return assigned
+
+def _tee_pads(tees,local,white_yards,blue_yards):
+    """White pad (mapped tee nearest the hole start, else the start) and a derived blue pad.
+
+    OSM maps the forward (yellow/red) tees but rarely the blue ones, so blue is the
+    white pad moved back along the first leg of the hole line by the scorecard
+    difference in yardage. Returns [white, blue-or-None] in hole-local metres.
+    """
+    near=[t for t in tees if np.linalg.norm(t)<=25]
+    white=min(near,key=lambda t:np.linalg.norm(t)) if near else np.zeros(2)
+    blue=None
+    if blue_yards>white_yards>0:
+        leg=local[1]-local[0]; back=-leg/np.linalg.norm(leg)
+        blue=white+back*(blue_yards-white_yards)*YARD
+    return [white,blue]
+
+def _crop_bounds(hole,local,pads,greens,pin):
+    """Hole-local crop (minx,maxx,minz,maxz) shared by the heightmap and the surface map.
+
+    Derived from the mapped line, tee pads, green and pin plus CROP_MARGIN, snapped
+    outward to CROP_SNAP. course.toml may force it with `crop = [minx, maxx, minz, maxz]`.
+    """
+    if hole.get("crop"):
+        minx,maxx,minz,maxz=(float(v) for v in hole["crop"])
+        if not (minx<maxx and minz<maxz): raise ValueError(f"hole {hole['number']}: crop must be [minx, maxx, minz, maxz] with min < max")
+        return minx,maxx,minz,maxz
+    pts=np.vstack([local,*[np.atleast_2d(p) for p in pads],*greens,np.atleast_2d(pin)])
+    snap=lambda v,fn:float(fn(v/CROP_SNAP)*CROP_SNAP)
+    minx=min(-MIN_HALF_WIDTH,snap(pts[:,0].min()-CROP_MARGIN,math.floor)); maxx=max(MIN_HALF_WIDTH,snap(pts[:,0].max()+CROP_MARGIN,math.ceil))
+    minz=min(-50.0,snap(pts[:,1].min()-CROP_MARGIN,math.floor)); maxz=max(40.0,snap(pts[:,1].max()+CROP_MARGIN,math.ceil))
+    return minx,maxx,minz,maxz
 
 def build(spec:dict, course_dir:Path, cache_dir:Path|None=None)->dict:
     fetched=json.loads((course_dir/"fetched.json").read_text())
@@ -166,30 +243,40 @@ def build(spec:dict, course_dir:Path, cache_dir:Path|None=None)->dict:
         local=_local(line,origin,forward,right); line_xz=[[round(float(x),3),round(float(z),3)] for x,z in local]
         assigned_features=assigned[num]
         greens=[_local(p,origin,forward,right) for typ,p in assigned_features if typ=="green"]
-        tees=[_local(p,origin,forward,right).mean(axis=0) for typ,p in assigned_features if typ=="tee"]
+        tee_polys=[_local(p,origin,forward,right) for typ,p in assigned_features if typ=="tee"]
+        tees=[t.mean(axis=0) for t in tee_polys]
         pins=[_local(p,origin,forward,right)[0] for typ,p in assigned_features if typ=="pin"]
         if not greens: warnings.append(f"hole {num}: no assigned green")
         if not tees: warnings.append(f"hole {num}: no assigned tee")
         pin=pins[0] if pins else local[-1]
         if greens and not any(_point_in_poly(pin,g) for g in greens): warnings.append(f"hole {num}: pin outside assigned green")
         yards=_yards(hole)
-        if yards>0 and abs(length-yards*0.9144)>0.1*yards*0.9144: warnings.append(f"hole {num}: mapped line {length:.1f} m differs from scorecard by >10%")
-        minz=min(-length-40,-50); maxz=40; minx=-70; maxx=70; step=2
+        length=float(np.linalg.norm(np.diff(local,axis=0),axis=1).sum()) # mapped play length, not the chord
+        if yards>0 and abs(length-yards*0.9144)>0.1*yards*0.9144 and not hole.get("accept_length_mismatch"): warnings.append(f"hole {num}: mapped line {length:.1f} m differs from scorecard by >10%")
+        step=2
+        blue_yards=float((hole["yards"] if isinstance(hole["yards"],dict) else {}).get("blue",0))
+        tee_pads=_tee_pads(tees,local,yards,blue_yards)
+        white_poly=min(tee_polys,key=lambda t:np.linalg.norm(t.mean(axis=0)-tee_pads[0]),default=None)
+        # Half-extents of the white tee polygon, kept within a drawable 3-8 m.
+        tee_radii=[float(np.clip(np.ptp(white_poly[:,i])/2,3,8)) for i in (0,1)] if white_poly is not None and np.linalg.norm(white_poly.mean(axis=0)-tee_pads[0])<1 else [6.0,4.0]
+        minx,maxx,minz,maxz=_crop_bounds(hole,local,[t for t in tee_pads if t is not None],greens,pin)
         for typ,points in assigned_features:
+            if typ in ("fairway","cartpath","bunker","water_hazard","lateral_water_hazard"): continue
             local_feature=_local(points,origin,forward,right)
-            if np.any(local_feature[:,0]<minx) or np.any(local_feature[:,0]>maxx) or np.any(local_feature[:,1]<minz) or np.any(local_feature[:,1]>maxz): warnings.append(f"hole {num}: {typ} extends beyond the 40 m terrain margin")
+            if np.any(local_feature[:,0]<minx) or np.any(local_feature[:,0]>maxx) or np.any(local_feature[:,1]<minz) or np.any(local_feature[:,1]>maxz): warnings.append(f"hole {num}: {typ} extends beyond the {CROP_MARGIN:g} m terrain margin")
         surface_features=[]
         for feature in features:
             typ=feature["type"]
             if typ in {"hole","pin"}: continue
             points=_line_coords(feature,tr); local_feature=_local(points,origin,forward,right)
+            rings=[_line_coords({"coords":r},tr) for r in feature.get("inner",[])]
             overlaps=(local_feature[:,0].min()<=maxx and local_feature[:,0].max()>=minx and local_feature[:,1].min()<=maxz and local_feature[:,1].max()>=minz)
             if not overlaps: continue
             owner_has=any(ftype==typ and np.array_equal(fpoints,points) for ftype,fpoints in assigned_features)
             # Adjacent greens and tee pads are playable fairway from this hole.
-            if owner_has: surface_features.append((typ,points))
-            elif typ in {"green","tee"}: surface_features.append(("fairway",points))
-            elif typ in {"fairway","bunker","water_hazard","lateral_water_hazard","cartpath"}: surface_features.append((typ,points))
+            if owner_has: surface_features.append((typ,points,rings))
+            elif typ in {"green","tee"}: surface_features.append(("fairway",points,rings))
+            elif typ in {"fairway","bunker","water_hazard","lateral_water_hazard","cartpath"}: surface_features.append((typ,points,rings))
         nx=math.ceil((maxx-minx)/step)+1; nz=math.ceil((maxz-minz)/step)+1
         xx,zz=np.meshgrid(minx+np.arange(nx)*step,maxz-np.arange(nz)*step)
         east=origin[0]+right[0]*xx-forward[0]*zz; north=origin[1]+right[1]*xx-forward[1]*zz
@@ -214,7 +301,7 @@ def build(spec:dict, course_dir:Path, cache_dir:Path|None=None)->dict:
         latlon=[float(x) for x in line_feature["coords"][0]]
         hole_path=out/"holes"/f"hole_{num:02d}.tres"
         hole["course_id"]=spec["id"]
-        hole_res=_hole_resource(num,hole,line_xz,local,pin,green_center,green_radii,tees,latlon,step,srf_path,terrain_path,surface.shape,(nx,nz),minz,maxz)
+        hole_res=_hole_resource(num,hole,line_xz,local,pin,green_center,green_radii,tees,latlon,step,srf_path,terrain_path,surface.shape,(nx,nz),(minx,maxz),tee_pads,tee_radii)
         hole_path.write_text(hole_res)
         resources.append(hole_path.relative_to(out).as_posix())
     _write_course(spec,out,resources,fetched)
@@ -234,12 +321,24 @@ def _raster_surfaces(num,hole,features,line,origin,forward,right,xx,zz):
     S=SURFACE; deep=S["deep_rough"]
     surface=np.full(xx.shape,deep,dtype=np.uint8); xz=_local(line,origin,forward,right)
     feature_ids={"green":S["green"],"fairway":S["fairway"],"tee":S["tee"],"bunker":S["bunker"],"water_hazard":S["water"],"lateral_water_hazard":S["water"],"cartpath":S["path"]}
-    # Polygon masks are evaluated in the feature's own frame.
-    for typ,pts in features:
+    # Later layers win: fairways under tees and greens, paths over fairway, hazards on top.
+    order={"fairway":0,"tee":1,"green":2,"cartpath":3,"water_hazard":4,"lateral_water_hazard":4,"bunker":5}
+    has_fairway=any(f[0]=="fairway" and len(f[1])>=3 for f in features)
+    for item in sorted(features,key=lambda f:order.get(f[0],9)):
+        typ,pts=item[0],item[1]; inner=item[2] if len(item)>2 else []
         if typ not in feature_ids: continue
         poly=_local(pts,origin,forward,right)
+        if typ=="cartpath":
+            # Mapped as a line: paint a strip of PATH_HALF_WIDTH either side of it.
+            pd=np.full(xx.shape,np.inf)
+            for a,b in zip(poly[:-1],poly[1:]):
+                vx,vz=b-a; t=np.clip(((xx-a[0])*vx+(zz-a[1])*vz)/max(vx*vx+vz*vz,1e-9),0,1)
+                pd=np.minimum(pd,np.hypot(xx-(a[0]+t*vx),zz-(a[1]+t*vz)))
+            surface[(pd<=PATH_HALF_WIDTH)&(surface!=S["water"])]=S["path"]
+            continue
         if len(poly)<3: continue
         mask=_polygon_mask(xx,zz,poly)
+        for ring in inner: mask&=~_polygon_mask(xx,zz,_local(ring,origin,forward,right))
         surface[mask]=feature_ids[typ]
         if typ=="green":
             dilated=distance_transform_edt(~mask)*SURFACE_SPACING<=3
@@ -250,7 +349,9 @@ def _raster_surfaces(num,hole,features,line,origin,forward,right,xx,zz):
         vx, vz=b-a; den=vx*vx+vz*vz
         t=np.clip(((xx-a[0])*vx+(zz-a[1])*vz)/max(den,1e-9),0,1)
         dist=np.minimum(dist,np.hypot(xx-(a[0]+t*vx),zz-(a[1]+t*vz)))
-    base=surface==deep; surface[base & (dist<16)]=S["fairway"]; surface[(surface==deep)&(dist<20)]=S["first_cut"]; surface[(surface==deep)&(dist<26)]=S["second_cut"]
+    # Only synthesize a fairway from the hole line when OSM maps none for this crop.
+    if not has_fairway:
+        base=surface==deep; surface[base & (dist<16)]=S["fairway"]; surface[(surface==deep)&(dist<20)]=S["first_cut"]; surface[(surface==deep)&(dist<26)]=S["second_cut"]
     # First/second cut around explicit fairways.
     fw=surface==S["fairway"]; near=distance_transform_edt(~fw)*SURFACE_SPACING
     surface[(surface==deep)&(near<=3)]=S["first_cut"]; surface[(surface==deep)&(near<=9)]=S["second_cut"]
@@ -289,19 +390,19 @@ def _save_surface(surface,path):
     import io
     buf=io.BytesIO(); image.save(buf,format="PNG",optimize=False); path.write_bytes(buf.getvalue())
 
-def _hole_resource(num,hole,line_xz,line,pin,green_center,green_radii,tees,latlon,step,srf_path,terrain_path,dims,elevation_dims,minz,maxz):
+def _hole_resource(num,hole,line_xz,line,pin,green_center,green_radii,tees,latlon,step,srf_path,terrain_path,dims,elevation_dims,crop_origin,tee_pads,tee_radii):
     # Emit contract properties even when this checkout's RCE-168/169 Resource classes are not yet landed.
     origin=[round(float(latlon[0]),8),round(float(latlon[1]),8)]
     center=[round(float(green_center[0]),3),round(float(green_center[1]),3)]
-    pads=sorted(tees,key=lambda p:np.linalg.norm(p[0]))
-    white=pads[0] if pads else np.array([0.,0.]); extras=pads[1:]
+    white,blue=tee_pads
+    crop=f"Vector2({crop_origin[0]:.3f}, {crop_origin[1]:.3f})" # sample (0, 0) at min X / max Z for both grids
     def v2(p): return f"Vector2({float(p[0]):.3f}, {float(p[1]):.3f})"
     def arr(vs): return "Array[Vector2](["+", ".join(v2(p) for p in vs)+"])"
     # Surface origin follows the top-left sample (min X, max Z).
     text='[gd_resource type="Resource" script_class="HoleDefinition" load_steps=2 format=3]\n\n[ext_resource type="Script" path="res://scripts/course/hole_definition.gd" id="1"]\n\n[resource]\nscript = ExtResource("1")\n'
     course_id=hole["course_id"]
     yardages=hole["yards"] if isinstance(hole["yards"],dict) else {"white":hole["yards"]}
-    attrs={"number":str(num),"display_name":f'"Hole {num}"',"par":str(int(hole["par"])),"yards":str(_yards(hole)),"tee_position":v2(white),"cup_position":v2(pin),"blue_tee_offset":v2(extras[0]-white) if extras else "Vector2.ZERO","black_tee_offset":v2(extras[1]-white) if len(extras)>1 else "Vector2.ZERO","blue_tee_yards":str(float(yardages.get("blue",0))),"black_tee_yards":str(float(yardages.get("black",0))),"green_radii":f"Vector2({green_radii[0]:.3f}, {green_radii[1]:.3f})","fairway_centerline":arr(line_xz),"elevation_file":f'"res://resources/courses/{course_id}/terrain/hole_{num:02d}.f32"',"elevation_origin":"Vector2(-70.000, 40.000)","elevation_spacing":"2.0","elevation_dimensions":f"Vector2i({elevation_dims[0]}, {elevation_dims[1]})","origin_latlon":v2(origin),"bearing_deg":str(math.degrees(math.atan2(line[-1,0]-line[0,0],line[-1,1]-line[0,1]))),"surface_map_file":f'"res://resources/courses/{course_id}/terrain/hole_{num:02d}.srf"',"surface_map_origin":"Vector2(-70.000, 40.000)","surface_map_spacing":str(SURFACE_SPACING),"surface_map_dimensions":f"Vector2i({int(dims[1])}, {int(dims[0])})"}
+    attrs={"number":str(num),"display_name":f'"Hole {num}"',"par":str(int(hole["par"])),"yards":str(_yards(hole)),"tee_position":v2(white),"tee_ellipse":f"Vector4({white[0]:.3f}, {white[1]:.3f}, {tee_radii[0]:.3f}, {tee_radii[1]:.3f})","cup_position":v2(pin),"blue_tee_offset":v2(blue-white) if blue is not None else "Vector2(0.000, 0.000)","black_tee_offset":"Vector2(0.000, 0.000)","blue_tee_yards":str(float(yardages.get("blue",0))),"black_tee_yards":str(float(yardages.get("black",0))),"green_radii":f"Vector2({green_radii[0]:.3f}, {green_radii[1]:.3f})","fairway_centerline":arr(line_xz),"elevation_file":f'"res://resources/courses/{course_id}/terrain/hole_{num:02d}.f32"',"elevation_origin":crop,"elevation_spacing":"2.0","elevation_dimensions":f"Vector2i({elevation_dims[0]}, {elevation_dims[1]})","origin_latlon":v2(origin),"bearing_deg":str(math.degrees(math.atan2(line[-1,0]-line[0,0],line[-1,1]-line[0,1]))),"surface_map_file":f'"res://resources/courses/{course_id}/terrain/hole_{num:02d}.srf"',"surface_map_origin":crop,"surface_map_spacing":str(SURFACE_SPACING),"surface_map_dimensions":f"Vector2i({int(dims[1])}, {int(dims[0])})"}
     for key,value in attrs.items(): text+=f"{key} = {value}\n"
     return text
 
@@ -310,15 +411,19 @@ def _write_course(spec,out,resources,fetched):
     ext="".join(f'[ext_resource type="Resource" path="res://resources/courses/{spec["id"]}/{p}" id="{i+1}"]\n' for i,p in enumerate(resources))
     product=fetched.get("dem_product") or {}
     provenance=[{"name":product.get("title","USGS 3DEP 1 meter DEM"),"url":product.get("downloadURL","https://www.usgs.gov/3d-elevation-program"),"license":"Public domain","attribution":"USGS 3D Elevation Program","retrieved":fetched["retrieved"],"survey_date":product.get("publicationDate",product.get("dateCreated","unknown"))},{"name":"OpenStreetMap","url":"https://www.openstreetmap.org/copyright","license":"ODbL","attribution":"© OpenStreetMap contributors","retrieved":fetched["retrieved"],"survey_date":"unknown"}]
-    provenance_gd="Array[Dictionary](["+", ".join("{ "+", ".join(f'{json.dumps(k)}: {json.dumps(str(v))}' for k,v in item.items())+" }" for item in provenance)+"])"
+    source=(spec.get("scorecard") or {}).get("source")
+    if source: provenance.append({"name":f'{spec["name"]} scorecard (par, handicap, tee yardages)',"url":source,"license":"Published scorecard facts; no source text or imagery redistributed","attribution":"Scorecard data as published at "+urllib.parse.urlparse(source).netloc,"retrieved":fetched["retrieved"],"survey_date":"unknown"})
+    provenance_gd="Array[Dictionary](["+", ".join("{ "+", ".join(f'{json.dumps(k)}: {json.dumps(str(v),ensure_ascii=False)}' for k,v in item.items())+" }" for item in provenance)+"])"
     centroid=[(fetched["bbox"][0]+fetched["bbox"][2])/2,(fetched["bbox"][1]+fetched["bbox"][3])/2]
     crs=CRS.from_user_input(fetched["crs"])
-    text=f'[gd_resource type="Resource" script_class="CourseDefinition" load_steps={len(resources)+2} format=3]\n\n[ext_resource type="Script" path="res://scripts/course/course_definition.gd" id="script"]\n{ext}\n[resource]\nscript = ExtResource("script")\nid = {json.dumps(spec["id"])}\nsource_kind = "real"\nprovenance = {provenance_gd}\ncrs = {json.dumps(crs.to_string())}\norigin_latlon = Vector2({centroid[0]:.8f}, {centroid[1]:.8f})\nnotes = "Generated by tools/course_import"\ndisplay_name = {json.dumps(spec["name"])}\nholes = Array[Resource]([{refs}])\n'
-    (out/"course.tres").write_text(text)
+    text=f'[gd_resource type="Resource" script_class="CourseDefinition" load_steps={len(resources)+2} format=3]\n\n[ext_resource type="Script" path="res://scripts/course/course_definition.gd" id="script"]\n{ext}\n[resource]\nscript = ExtResource("script")\nid = {json.dumps(spec["id"])}\nsource_kind = "real"\nprovenance = {provenance_gd}\ncrs = {json.dumps(crs.to_string())}\norigin_latlon = Vector2({centroid[0]:.8f}, {centroid[1]:.8f})\nnotes = "Generated by tools/course_import. Blue tee pads are derived from scorecard yardage."\ndisplay_name = {json.dumps(spec["name"])}\nholes = Array[Resource]([{refs}])\n'
+    (out/"course.tres").write_text(text,encoding="utf-8")
 
 def _write_attribution(spec,out,fetched):
     product=fetched.get("dem_product") or {}; name=product.get("title","USGS 3DEP 1 meter DEM"); survey=product.get("publicationDate",product.get("dateCreated","unknown"))
-    (out/"ATTRIBUTION.md").write_text(f'''# {spec['name']} data attribution\n\n- Elevation: {name}. USGS 3D Elevation Program; public domain. Retrieved {fetched['retrieved']}; survey/product date: {survey}.\n- Golf features: OpenStreetMap contributors, © OpenStreetMap contributors, licensed under [ODbL](https://www.openstreetmap.org/copyright). Retrieved {fetched['retrieved']}.\n\nThis course data is derived from these sources.\n''')
+    source=(spec.get("scorecard") or {}).get("source")
+    scorecard_line=f"- Scorecard (par, handicap and tee yardages): published scorecard at <{source}>. Retrieved {fetched['retrieved']}.\n" if source else ""
+    (out/"ATTRIBUTION.md").write_text(encoding="utf-8",data=f'''# {spec['name']} data attribution\n\n- Elevation: {name}. USGS 3D Elevation Program; public domain. Retrieved {fetched['retrieved']}; survey/product date: {survey}.\n- Golf features: OpenStreetMap contributors, © OpenStreetMap contributors, licensed under [ODbL](https://www.openstreetmap.org/copyright). Retrieved {fetched['retrieved']}.\n{scorecard_line}\nThis course data is derived from these sources. Fairway, green and tee shapes, bunkers, water and cart paths come from OpenStreetMap; the surface bands (cuts, collars) and blue tee pads (white pad moved back along the first leg of the hole line by the scorecard yardage difference) are derived by `tools/course_import`.\n''')
 
 def validate(spec:dict,course_dir:Path,build_result:dict|None=None)->list[str]:
     errors=[]; holes=spec["holes"]
@@ -345,6 +450,11 @@ def validate(spec:dict,course_dir:Path,build_result:dict|None=None)->list[str]:
         for warning in build_result.get("warnings",[]): errors.append(warning)
     return errors
 
+def _fit(image,size):
+    """Scale to fit inside size keeping the aspect ratio (a wide dogleg crop must not stretch)."""
+    scale=min(size[0]/image.width,size[1]/image.height); small=image.resize((max(1,round(image.width*scale)),max(1,round(image.height*scale))),Image.NEAREST)
+    canvas=Image.new("RGB",size,(20,20,20)); canvas.paste(small,((size[0]-small.width)//2,(size[1]-small.height)//2)); return canvas
+
 def preview(spec,course_dir,outdir):
     import io
     outdir.mkdir(parents=True,exist_ok=True); colors=[(30,89,42),(111,126,68),(124,170,88),(74,145,65),(36,132,57),(154,174,88),(210,184,91),(180,171,137),(35,113,166),(183,153,103)]
@@ -353,7 +463,7 @@ def preview(spec,course_dir,outdir):
         p=course_dir/"terrain"/f"hole_{h['number']:02d}.srf"
         if not p.exists(): continue
         a=np.asarray(Image.open(p).convert("L")); rgb=np.asarray([colors[int(i)%len(colors)] for i in a.flat],dtype=np.uint8).reshape((*a.shape,3))
-        im=Image.fromarray(rgb).resize((280,360)); d=ImageDraw.Draw(im); d.text((8,8),f"Hole {h['number']} • {_yards(h):g} yd",fill="white",stroke_width=2,stroke_fill="black")
+        im=_fit(Image.fromarray(rgb),(280,360)); d=ImageDraw.Draw(im); d.text((8,8),f"Hole {h['number']} • {_yards(h):g} yd",fill="white",stroke_width=2,stroke_fill="black")
         im.save(outdir/f"hole_{h['number']:02d}.png"); thumbs.append(im)
     if len(thumbs)==18:
         sheet=Image.new("RGB",(280*6,360*3),(20,20,20))
