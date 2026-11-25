@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="HoleDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/course/hole_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+number = 5
+display_name = "Hole 5"
+par = 3
+yards = 153.0
+tee_position = Vector2(0.590, -2.091)
+tee_ellipse = Vector4(0.590, -2.091, 5.820, 8.000)
+cup_position = Vector2(0.000, -138.607)
+blue_tee_offset = Vector2(0.235, 10.056)
+black_tee_offset = Vector2(0.000, 0.000)
+blue_tee_yards = 164.0
+black_tee_yards = 0.0
+green_radii = Vector2(14.440, 14.288)
+fairway_centerline = Array[Vector2]([Vector2(0.000, 0.000), Vector2(-1.943, -83.254), Vector2(0.000, -138.607)])
+elevation_file = "res://resources/courses/royal_crest/terrain/hole_05.f32"
+elevation_origin = Vector2(-70.000, 50.000)
+elevation_spacing = 2.0
+elevation_dimensions = Vector2i(71, 126)
+origin_latlon = Vector2(-81.883, 41.320)
+bearing_deg = 180.0
+surface_map_file = "res://resources/courses/royal_crest/terrain/hole_05.srf"
+surface_map_origin = Vector2(-70.000, 50.000)
+surface_map_spacing = 0.5
+surface_map_dimensions = Vector2i(281, 501)

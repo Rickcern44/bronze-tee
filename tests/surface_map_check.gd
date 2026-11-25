@@ -36,7 +36,7 @@ func parametric_snapshot(game) -> Array:
 	return out
 
 func check() -> void:
-	var game = load("res://scenes/main.tscn").instantiate()
+	var game = load("res://tests/legacy_course.gd").game()
 	root.add_child(game)
 	await process_frame
 	var S: Dictionary = game.Surface

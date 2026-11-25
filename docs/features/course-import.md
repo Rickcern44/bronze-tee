@@ -56,7 +56,7 @@ The origin is the start of the OSM hole line (the white or middle tee). -Z point
 * A PNG-encoded, 8-bit, two-channel (LA) image stored under a non-imported extension. The game reads it with `Image.load_png_from_buffer(FileAccess.get_file_as_bytes(path))`, so Godot's importer never touches it. Add `*.srf` to the export `include_filter` next to `*.f32`.
 * Channel 0 holds the surface ID: 0 deep rough, 1 second cut, 2 first cut, 3 fairway, 4 green, 5 collar, 6 tee, 7 path, 8 water, 9 bunker. These match `Surface` in `main.gd` plus bunker; reconcile the numbering in one place.
 * Channel 1 holds the distance to the nearest boundary of a different surface, in 0.1 m units clamped at 25.5 m. The shader uses it for step shadows, banks and shallows, and to smooth sub-texel edges. Gameplay ignores it.
-* Spacing is 0.5 m, with the same origin convention as the heightmap (first sample at the min-X, max-Z corner; rows advance toward -Z). Resource fields: `surface_map_file`, `surface_map_origin`, `surface_map_spacing`, `surface_map_dimensions`.
+* Spacing is 0.5 m, with the same origin convention as the heightmap (first sample at the min-X, max-Z corner; rows advance toward -Z). The crop is derived per hole from its mapped line, tee pads and green plus a 40 m margin (RCE-179: it was a fixed origin of (-70, 40) before), and the origin is stored in the hole resource. Resource fields: `surface_map_file`, `surface_map_origin`, `surface_map_spacing`, `surface_map_dimensions`.
 * The tool bakes cut bands and the collar: first cut is the fairway distance up to `first_cut_width`, second cut follows that, and the collar is a band around the green polygon. Features belonging to *neighbouring* holes inside the crop are rasterized as well: their fairways, bunkers and water are kept, and their greens and tees become fairway, so nobody putts on the wrong green.
 * Holes without a surface map keep today's parametric path (ellipses and centerline width). Existing test fixtures stay valid.
 
@@ -103,7 +103,7 @@ tee_to_green_m = -3
 | RCE-172 course_import CLI: real US courses | Tool | contracts above; RCE-168 and RCE-169 to load output in-game |
 | RCE-173 course_import: fictional/classic-course synthesis | Tool | RCE-172 |
 | RCE-174 course-import Claude skill | Skill | RCE-172 (RCE-173 for the fictional path) |
-| RCE-175 Import full 18-hole Royal Crest via the pipeline | Content | RCE-168–172, RCE-174 |
+| RCE-175 Import full 18-hole Royal Crest via the pipeline | Content | RCE-168–172, RCE-174 (done by driving the CLI by hand; the skill is not required) |
 
 RCE-168, RCE-171 and RCE-172 can start in parallel.
 
@@ -119,3 +119,6 @@ RCE-168, RCE-171 and RCE-172 can start in parallel.
 * Non-monotonic routes (a hole line whose Z reverses) are rejected for now. With surface maps only the aim and path helpers need the monotonic centerline.
 * Recreating a commercial game's *fictional* course reproduces someone else's design. That's fine for personal play, but the skill must flag it before anything is distributed.
 * Python dependencies: numpy, pyproj and rasterio are already on the VM; add scipy (distance transforms) through `tools/course_import/requirements.txt`. Tool tests use stdlib `unittest` with offline fixtures (a saved OSM JSON and a small synthetic DEM) and run as a new `check.sh` stage.
+
+## Status: Royal Crest imported (RCE-175)
+`resources/courses/royal_crest/` is the default course: 18 holes, par 71, white and blue tees from the [stymie.golf scorecard](https://stymie.golf/golf-courses/ohio/lorain-county/columbia-station/royal-crest-golf-club), OSM tees, greens, pins, fairways (including multipolygon relations), 8 bunkers, 5 water hazards and 11 cart paths, and 3DEP 1 m elevation (`USGS 1 Meter 17 x42y458 OH_Statewide_Phase1_2019_B19`). Attribution is in `ATTRIBUTION.md` and the course `provenance` (USGS public domain, © OpenStreetMap contributors under ODbL, scorecard source). `tests/royal_crest_course_check.gd` and `tests/royal_crest_round_check.gd` cover the data and a full autopilot round. Findings from importing real data: OSM pins are nodes and fairways are often multipolygon relations (both were previously dropped), `.tres` text cannot carry `\u` escapes or `Vector2.ZERO`, and the OSM hole 4 line is 10% shorter than the scorecard.

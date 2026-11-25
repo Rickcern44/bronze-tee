@@ -29,7 +29,7 @@ project/assembly_name="BronzeTee.Godot"
 
 [bronze_tee]
 
-course/default="res://resources/courses/royal_crest_legacy/course.tres"
+course/default="res://resources/courses/royal_crest/course.tres"
 
 [rendering]
 

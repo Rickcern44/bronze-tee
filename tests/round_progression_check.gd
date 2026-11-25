@@ -12,7 +12,7 @@ func hole_out(game: Node, count: int) -> void:
 	assert(game._complete_hole())
 	assert(not game._complete_hole(), "score must be recorded only once")
 func check() -> void:
-	var game = load("res://scenes/main.tscn").instantiate()
+	var game = load("res://tests/legacy_course.gd").game()
 	root.add_child(game)
 	await process_frame
 	assert(game.wind_index > 0, "opening wind must not be calm")
